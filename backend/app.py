@@ -34,7 +34,7 @@ app.register_blueprint(resources_bp, url_prefix='/api')
 
 @app.route('/')
 def home():
-    return {'message': 'Flask + Supabase API'}
+    return jsonify({'message': 'Flask + Supabase API', 'status': 'running'}), 200
 
 @app.route('/health')
 def health():
