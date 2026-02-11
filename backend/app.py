@@ -17,6 +17,7 @@ CORS(app, origins=[
     'http://localhost:3001', 
     'http://localhost:3000', 
     'http://localhost:5173',
+    'https://frenchdel.onrender.com',
     'https://french-learning-app-fnpy.onrender.com'
 ])
 
