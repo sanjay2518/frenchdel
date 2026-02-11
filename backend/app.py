@@ -13,13 +13,19 @@ from routes.resources import resources_bp
 from services.supabase_service import supabase_service
 
 app = Flask(__name__)
-CORS(app, origins=[
-    'http://localhost:3001', 
-    'http://localhost:3000', 
-    'http://localhost:5173',
-    'https://frenchdel.onrender.com',
-    'https://french-learning-app-fnpy.onrender.com'
-])
+
+# Configure CORS with more permissive settings for production
+CORS(app, 
+     resources={r"/api/*": {"origins": [
+         'http://localhost:3001', 
+         'http://localhost:3000', 
+         'http://localhost:5173',
+         'https://frenchdel.onrender.com',
+         'https://french-learning-app-fnpy.onrender.com'
+     ]}},
+     supports_credentials=True,
+     allow_headers=['Content-Type', 'Authorization'],
+     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
