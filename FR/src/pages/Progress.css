@@ -1,0 +1,688 @@
+/* ============ Progress Page Styles ============ */
+
+.progress-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 2rem 0;
+}
+
+.progress-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Header */
+.progress-header {
+    margin-bottom: 2rem;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gray-600);
+    font-weight: 500;
+    margin-bottom: 1rem;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: var(--primary-600);
+}
+
+.progress-title-section h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 0.5rem;
+}
+
+.progress-title-section p {
+    color: var(--gray-600);
+    font-size: 1.125rem;
+    margin: 0;
+}
+
+/* Stats Overview */
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-100);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-card.primary {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-middle));
+    color: white;
+    border: none;
+}
+
+.stat-card.primary .stat-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.stat-card.primary .stat-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.stat-card .stat-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gray-100);
+    border-radius: var(--radius-lg);
+    flex-shrink: 0;
+}
+
+.stat-card .stat-icon.blue {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.stat-card .stat-icon.purple {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.stat-card .stat-icon.orange {
+    background: #ffedd5;
+    color: #ea580c;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+}
+
+.stat-badge {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    font-size: 0.75rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.25rem 0.5rem;
+    border-radius: 50px;
+}
+
+/* Progress Grid */
+.progress-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.progress-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-100);
+}
+
+.progress-card .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.progress-card .card-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.125rem;
+    margin: 0;
+    color: var(--gray-900);
+}
+
+.goal-badge {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary-600);
+    background: var(--primary-50);
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+}
+
+/* Weekly Goal Card */
+.weekly-progress {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.progress-ring {
+    position: relative;
+    width: 140px;
+    height: 140px;
+}
+
+.progress-ring svg {
+    transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+    fill: none;
+    stroke: var(--gray-200);
+    stroke-width: 8;
+}
+
+.progress-ring-fill {
+    fill: none;
+    stroke: url(#progressGradient);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.5s ease;
+}
+
+.progress-ring::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+}
+
+.progress-ring svg {
+    width: 100%;
+    height: 100%;
+}
+
+.progress-ring-fill {
+    stroke: var(--primary-500);
+}
+
+.progress-value {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-value .value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.progress-value .label {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+}
+
+.weekly-days {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.day-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.day-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+}
+
+.day-dots {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.day-dots .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gray-200);
+    transition: all 0.3s ease;
+}
+
+.day-dots .dot.filled {
+    background: var(--primary-500);
+}
+
+.day-indicator.active .day-name {
+    color: var(--primary-600);
+}
+
+/* Skills Card */
+.skills-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.skill-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.skill-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.skill-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+}
+
+.skill-icon.speaking {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.skill-icon.writing {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.skill-name {
+    flex: 1;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.skill-score {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.skill-bar {
+    height: 10px;
+    background: var(--gray-200);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.skill-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+
+.skill-fill.speaking {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.skill-fill.writing {
+    background: linear-gradient(90deg, #8b5cf6, #7c3aed);
+}
+
+.skill-stats {
+    font-size: 0.8125rem;
+    color: var(--gray-500);
+}
+
+/* Achievements Card */
+.achievements-card {
+    grid-column: span 2;
+}
+
+.achievement-count {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--gray-100);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.achievement-item.unlocked {
+    background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+    border-color: #86efac;
+}
+
+.achievement-item.locked {
+    opacity: 0.7;
+}
+
+.achievement-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+    color: var(--gray-400);
+    flex-shrink: 0;
+}
+
+.achievement-item.unlocked .achievement-icon {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-middle));
+    color: white;
+}
+
+.achievement-info h4 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--gray-900);
+}
+
+.achievement-info p {
+    font-size: 0.8125rem;
+    color: var(--gray-500);
+    margin: 0;
+}
+
+.achievement-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.mini-progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--gray-200);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.mini-progress-fill {
+    height: 100%;
+    background: var(--primary-500);
+    border-radius: 2px;
+}
+
+.achievement-progress span {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    white-space: nowrap;
+}
+
+.achievement-badge {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    color: #10b981;
+}
+
+/* Activity Card */
+.activity-card {
+    grid-column: span 2;
+}
+
+.view-all-link {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary-600);
+}
+
+.view-all-link:hover {
+    text-decoration: underline;
+}
+
+.empty-activity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    text-align: center;
+    color: var(--gray-400);
+}
+
+.empty-activity p {
+    margin: 1rem 0 1.5rem;
+    color: var(--gray-500);
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem;
+    border-radius: var(--radius-lg);
+    background: var(--gray-50);
+    transition: all 0.2s ease;
+}
+
+.activity-item:hover {
+    background: var(--gray-100);
+}
+
+.activity-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+}
+
+.activity-icon.speaking {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.activity-icon.writing {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.activity-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.activity-title {
+    font-weight: 500;
+    color: var(--gray-800);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.activity-date {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8125rem;
+    color: var(--gray-500);
+}
+
+.activity-status {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 0.375rem 0.75rem;
+    border-radius: 50px;
+}
+
+.activity-status.reviewed {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.activity-status.pending {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+/* Motivation Banner */
+.motivation-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-middle));
+    border-radius: var(--radius-xl);
+    color: white;
+    flex-wrap: wrap;
+}
+
+.motivation-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.motivation-banner h3 {
+    color: white;
+    margin-bottom: 0.25rem;
+}
+
+.motivation-banner p {
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+}
+
+.motivation-banner .btn-primary {
+    background: white;
+    color: var(--primary-600);
+}
+
+.motivation-banner .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+/* Mobile Responsive */
+@media (max-width: 1024px) {
+    .progress-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .achievements-card,
+    .activity-card {
+        grid-column: span 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .progress-page {
+        padding: 1rem 0;
+    }
+
+    .progress-container {
+        padding: 0 1rem;
+    }
+
+    .progress-title-section h1 {
+        font-size: 1.5rem;
+    }
+
+    .stats-overview {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-card .stat-icon {
+        width: 44px;
+        height: 44px;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .achievements-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .motivation-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .motivation-content {
+        flex-direction: column;
+    }
+
+    .motivation-banner .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-overview {
+        grid-template-columns: 1fr;
+    }
+
+    .weekly-days {
+        gap: 0.5rem;
+    }
+}

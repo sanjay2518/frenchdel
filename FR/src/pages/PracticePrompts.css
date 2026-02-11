@@ -1,0 +1,157 @@
+.practice-prompts-page {
+    min-height: 100vh;
+    background: var(--gray-50);
+    padding: var(--spacing-lg);
+}
+
+.prompts-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.prompts-header {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--primary-600);
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: var(--spacing-lg);
+    transition: color var(--transition-fast);
+}
+
+.back-link:hover {
+    color: var(--primary-700);
+}
+
+.prompts-header h1 {
+    font-size: 2rem;
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-sm);
+}
+
+.prompts-header p {
+    color: var(--gray-600);
+    font-size: 1.125rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-3xl);
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto var(--spacing-lg);
+    background: var(--gray-100);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-400);
+}
+
+.prompts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--spacing-xl);
+}
+
+.prompt-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-100);
+    padding: var(--spacing-xl);
+    transition: all var(--transition-base);
+}
+
+.prompt-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.prompt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.prompt-type {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--primary-600);
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.prompt-status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.prompt-status.pending {
+    background: var(--warning-light);
+    color: var(--warning);
+}
+
+.prompt-status.completed {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.prompt-card h3 {
+    font-size: 1.25rem;
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-md);
+}
+
+.prompt-card p {
+    color: var(--gray-600);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-lg);
+}
+
+.prompt-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+    font-size: 0.875rem;
+    color: var(--gray-500);
+}
+
+.prompt-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+@media (max-width: 768px) {
+    .practice-prompts-page {
+        padding: var(--spacing-md);
+    }
+    
+    .prompts-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    .prompt-card {
+        padding: var(--spacing-lg);
+    }
+}

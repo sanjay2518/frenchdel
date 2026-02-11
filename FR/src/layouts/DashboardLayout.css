@@ -1,0 +1,111 @@
+<<<<<<< HEAD
+.dashboard-layout {
+    min-height: 100vh;
+    background: var(--gray-50);
+}
+
+.dashboard-content {
+    padding-top: 80px;
+    min-height: calc(100vh - 80px);
+}
+
+.dashboard-main {
+    width: 100%;
+    min-height: calc(100vh - 80px);
+    padding: var(--spacing-lg);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .dashboard-content {
+        padding-top: 70px;
+        min-height: calc(100vh - 70px);
+    }
+    
+    .dashboard-main {
+        min-height: calc(100vh - 70px);
+        margin-left: 0;
+    }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+    .dashboard-content {
+        display: flex;
+    }
+    
+    .dashboard-main {
+        flex: 1;
+        margin-left: 0;
+=======
+/* ============ Dashboard Layout ============ */
+.dashboard-layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--gray-50);
+    width: 100%;
+    overflow-x: hidden;
+}
+
+.dashboard-content {
+    flex: 1;
+    display: flex;
+    padding-top: 80px;
+    min-height: 0;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+.dashboard-main {
+    flex: 1;
+    padding: var(--spacing-md);
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ============ Device-Specific Dashboard Layout ============ */
+
+/* Mobile (320px - 768px) */
+@media (max-width: 768px) {
+    .dashboard-content {
+        padding-top: 70px;
+    }
+
+    .dashboard-main {
+        padding: var(--spacing-md);
+    }
+}
+
+/* Tablet (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .dashboard-content {
+        padding-top: 80px;
+    }
+
+    .dashboard-main {
+        padding: var(--spacing-lg);
+    }
+}
+
+/* Laptop/Desktop (1025px+) */
+@media (min-width: 1025px) {
+    .dashboard-content {
+        padding-top: 80px;
+    }
+
+    .dashboard-main {
+        padding: var(--spacing-xl);
+    }
+}
+
+/* Large Desktop (1440px+) */
+@media (min-width: 1440px) {
+    .dashboard-main {
+        padding: var(--spacing-2xl);
+>>>>>>> 49a431c698c979c4762a9ffe43fdb492e61b3579
+    }
+}

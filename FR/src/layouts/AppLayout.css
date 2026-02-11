@@ -1,0 +1,97 @@
+/* ============ App Layout System ============ */
+.app-layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-main {
+    flex: 1;
+    padding-top: 80px; /* Account for fixed navbar */
+}
+
+<<<<<<< HEAD
+=======
+.app-main--auth {
+    padding-top: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+>>>>>>> 10ce906668222f5b2670b48914bd315842ceb939
+/* Layout Variants */
+.app-layout--default {
+    background: var(--gray-50);
+}
+
+.app-layout--dashboard {
+    background: var(--gray-100);
+}
+
+.app-layout--admin {
+    background: var(--gray-50);
+}
+
+.app-layout--fullscreen {
+    background: white;
+}
+
+.app-layout--fullscreen .app-main {
+    padding-top: 0;
+}
+
+/* ============ Device-Specific Layout Responsive Design ============ */
+
+/* Mobile (320px - 768px) */
+@media (max-width: 768px) {
+    .app-main {
+        padding-top: 70px;
+    }
+    
+    .dashboard-content {
+        padding-top: 70px;
+    }
+    
+    .dashboard-main {
+        padding: var(--spacing-md);
+    }
+}
+
+/* Tablet (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .app-main {
+        padding-top: 80px;
+    }
+    
+    .dashboard-content {
+        padding-top: 80px;
+    }
+    
+    .dashboard-main {
+        padding: var(--spacing-lg);
+    }
+}
+
+/* Laptop/Desktop (1025px+) */
+@media (min-width: 1025px) {
+    .app-main {
+        padding-top: 80px;
+    }
+    
+    .dashboard-content {
+        padding-top: 80px;
+    }
+    
+    .dashboard-main {
+        padding: var(--spacing-xl);
+    }
+}
+
+/* Large Desktop (1440px+) */
+@media (min-width: 1440px) {
+    .dashboard-main {
+        padding: var(--spacing-2xl);
+    }
+}
