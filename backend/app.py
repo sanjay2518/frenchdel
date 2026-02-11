@@ -22,7 +22,9 @@ CORS(app,
          'http://localhost:5173',
          'https://frenchdel.onrender.com',
          'https://frenchdel-1.onrender.com',
-         'https://french-learning-app-fnpy.onrender.com'
+         'https://french-learning-app-fnpy.onrender.com',
+         'https://fr-user-app.vercel.app',
+         'https://fr-admin-app.vercel.app'
      ]}},
      supports_credentials=True,
      allow_headers=['Content-Type', 'Authorization'],
