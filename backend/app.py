@@ -13,7 +13,13 @@ from routes.resources import resources_bp
 from services.supabase_service import supabase_service
 
 app = Flask(__name__)
-CORS(app, origins=['http://localhost:3001', 'http://localhost:3000', 'http://localhost:5173'])
+CORS(app, origins=[
+    'http://localhost:3001', 
+    'http://localhost:3000', 
+    'http://localhost:5173',
+    'https://french-learning-app-fnpy.onrender.com',
+    'https://french-learning-admin.onrender.com'
+])
 
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')

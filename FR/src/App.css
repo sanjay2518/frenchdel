@@ -1,13 +1,6 @@
 #root {
-<<<<<<< HEAD
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-=======
   width: 100%;
   min-height: 100vh;
->>>>>>> 49a431c698c979c4762a9ffe43fdb492e61b3579
 }
 
 .logo {

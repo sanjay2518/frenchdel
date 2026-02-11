@@ -1,9 +1,5 @@
 .profile-page {
-<<<<<<< HEAD
-    padding-top: 100px;
-=======
     padding-top: 0;
->>>>>>> 10ce906668222f5b2670b48914bd315842ceb939
     padding-bottom: 3rem;
     min-height: 100vh;
     background: var(--gray-50);
@@ -12,11 +8,7 @@
 .profile-container {
     max-width: 900px;
     margin: 0 auto;
-<<<<<<< HEAD
-    padding: 0 1.5rem;
-=======
     padding: 2rem 1.5rem;
->>>>>>> 10ce906668222f5b2670b48914bd315842ceb939
 }
 
 /* Header */
@@ -300,8 +292,6 @@
     box-shadow: 0 0 0 3px var(--primary-100);
 }
 
-<<<<<<< HEAD
-=======
 /* Subscription Info */
 .subscription-info {
     display: flex;
@@ -332,7 +322,6 @@
     text-decoration: underline;
 }
 
->>>>>>> 10ce906668222f5b2670b48914bd315842ceb939
 /* Responsive */
 @media (max-width: 768px) {
     .profile-card-header {

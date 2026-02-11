@@ -10,8 +10,6 @@
     padding-top: 80px; /* Account for fixed navbar */
 }
 
-<<<<<<< HEAD
-=======
 .app-main--auth {
     padding-top: 0;
     min-height: 100vh;
@@ -20,7 +18,6 @@
     justify-content: center;
 }
 
->>>>>>> 10ce906668222f5b2670b48914bd315842ceb939
 /* Layout Variants */
 .app-layout--default {
     background: var(--gray-50);

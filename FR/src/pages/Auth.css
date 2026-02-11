@@ -332,40 +332,6 @@
     text-decoration: underline;
 }
 
-<<<<<<< HEAD
-/* Success Message */
-.success-message {
-    text-align: center;
-    padding: 2rem 0;
-}
-
-.success-icon {
-    color: var(--success);
-    margin-bottom: 1.5rem;
-}
-
-.success-message h2 {
-    color: var(--gray-900);
-    margin-bottom: 1rem;
-}
-
-.success-message p {
-    color: var(--gray-600);
-    margin-bottom: 2rem;
-    line-height: 1.6;
-}
-
-.success-actions {
-    display: flex;
-    justify-content: center;
-}
-
-.success-actions .btn {
-    min-width: 160px;
-}
-
-=======
->>>>>>> 49a431c698c979c4762a9ffe43fdb492e61b3579
 /* Responsive */
 @media (max-width: 1024px) {
     .auth-container {
