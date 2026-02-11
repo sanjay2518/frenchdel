@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ArrowLeft, Mic, PenTool, Send, Play, Pause } from 'lucide-react';
+import API_URL from '../config/api';
 import './PromptDetail.css';
 
 const PromptDetail = () => {
@@ -28,7 +29,7 @@ const PromptDetail = () => {
 
     const fetchPrompt = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/admin/get-prompts`);
+            const response = await fetch(`${API_URL}/api/admin/get-prompts`);
             if (response.ok) {
                 const data = await response.json();
                 const foundPrompt = data.prompts?.find(p => p.id === promptId);
@@ -65,7 +66,7 @@ const PromptDetail = () => {
                 const formData = new FormData();
                 formData.append('audio', audioBlob, 'recording.webm');
                 
-                const uploadResponse = await fetch('http://localhost:5000/api/uploads/upload-audio', {
+                const uploadResponse = await fetch(`${API_URL}/api/uploads/upload-audio`, {
                     method: 'POST',
                     body: formData
                 });
@@ -76,7 +77,7 @@ const PromptDetail = () => {
                 }
             }
             
-            const response = await fetch('http://localhost:5000/api/admin/submit-task', {
+            const response = await fetch(`${API_URL}/api/admin/submit-task`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

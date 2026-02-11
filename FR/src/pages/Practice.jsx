@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Mic, PenTool, ArrowLeft, Loader, AlertCircle } from 'lucide-react';
+import API_URL from '../config/api';
 import './Practice.css';
 
 const Practice = () => {
@@ -17,8 +18,8 @@ const Practice = () => {
 
                 // Fetch both speaking and writing prompts
                 const [speakingRes, writingRes] = await Promise.all([
-                    fetch('http://localhost:5000/api/prompts/type/speaking'),
-                    fetch('http://localhost:5000/api/prompts/type/writing')
+                    fetch(`${API_URL}/api/prompts/type/speaking`),
+                    fetch(`${API_URL}/api/prompts/type/writing`)
                 ]);
 
                 const speakingData = await speakingRes.json();

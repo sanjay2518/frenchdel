@@ -7,6 +7,7 @@ import {
     GraduationCap, Target, Zap, Mic, PenTool,
     AlertCircle, RefreshCw
 } from 'lucide-react';
+import API_URL from '../config/api';
 import './Lessons.css';
 
 const Lessons = () => {
@@ -53,7 +54,7 @@ const Lessons = () => {
     // Fetch lessons for a specific difficulty level
     const fetchLessonsByDifficulty = async (difficulty) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/prompts/difficulty/${difficulty}`);
+            const response = await fetch(`${API_URL}/api/prompts/difficulty/${difficulty}`);
             const data = await response.json();
 
             if (data.success) {

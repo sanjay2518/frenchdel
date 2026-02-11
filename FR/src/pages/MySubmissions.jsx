@@ -7,6 +7,7 @@ import {
     ChevronDown, ChevronUp, Calendar,
     Inbox, Star
 } from 'lucide-react';
+import API_URL from '../config/api';
 import './MySubmissions.css';
 
 const MySubmissions = () => {
@@ -24,7 +25,7 @@ const MySubmissions = () => {
 
     const fetchSubmissions = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/user/submissions/${user.id}`);
+            const response = await fetch(`${API_URL}/api/user/submissions/${user.id}`);
             const data = await response.json();
             if (data.success) {
                 setSubmissions(data.submissions || []);

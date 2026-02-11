@@ -6,6 +6,7 @@ import {
     Send, ArrowLeft, CheckCircle, BookOpen, Trash2, Loader,
     Star, ThumbsUp, AlertCircle, Lightbulb, ChevronDown, ChevronUp, XCircle
 } from 'lucide-react';
+import API_URL from '../config/api';
 import './Practice.css';
 
 const WritingPractice = () => {
@@ -25,7 +26,7 @@ const WritingPractice = () => {
         const fetchPrompts = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('http://localhost:5000/api/prompts/type/writing');
+                const response = await fetch(`${API_URL}/api/prompts/type/writing`);
                 const data = await response.json();
                 if (data.success) setPrompts(data.prompts || []);
             } catch (err) {
@@ -45,7 +46,7 @@ const WritingPractice = () => {
         setFeedback(null);
 
         try {
-            const response = await fetch('http://localhost:5000/api/feedback/writing', {
+            const response = await fetch(`${API_URL}/api/feedback/writing`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

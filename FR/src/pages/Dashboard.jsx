@@ -8,6 +8,7 @@ import {
     FileText, Award, Inbox, Target
 } from 'lucide-react';
 import Onboarding from '../components/Onboarding';
+import API_URL from '../config/api';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -43,7 +44,7 @@ const Dashboard = () => {
 
     const simulateUpgrade = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/subscription/update-subscription', {
+            const response = await fetch(`${API_URL}/api/subscription/update-subscription`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

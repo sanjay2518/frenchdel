@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import API_URL from '../config/api';
 
 const UserDataContext = createContext(null);
 
@@ -29,7 +30,7 @@ export const UserDataProvider = ({ children }) => {
 
                 // Then fetch from backend to get latest feedback
                 try {
-                    const response = await fetch(`http://localhost:5000/api/user/submissions/${user.id}`);
+                    const response = await fetch(`${API_URL}/api/user/submissions/${user.id}`);
                     if (response.ok) {
                         const data = await response.json();
                         if (data.success && data.submissions) {
@@ -93,7 +94,7 @@ export const UserDataProvider = ({ children }) => {
     // Send email notification
     const sendEmailNotification = async (userEmail, submissionTitle) => {
         try {
-            const response = await fetch('http://localhost:5000/api/notifications/send-feedback-notification', {
+            const response = await fetch(`${API_URL}/api/notifications/send-feedback-notification`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: userEmail, submission_title: submissionTitle })
@@ -168,7 +169,7 @@ export const UserDataProvider = ({ children }) => {
         if (!user) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/user/submissions/${user.id}`);
+            const response = await fetch(`${API_URL}/api/user/submissions/${user.id}`);
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && data.submissions) {

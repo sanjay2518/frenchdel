@@ -6,6 +6,7 @@ import {
     ArrowLeft, Check, ExternalLink, Clock, Star,
     AlertCircle, RefreshCw, Inbox
 } from 'lucide-react';
+import API_URL from '../config/api';
 import './Resources.css';
 
 const Resources = () => {
@@ -23,7 +24,7 @@ const Resources = () => {
         setError(null);
 
         try {
-            const response = await fetch(`http://localhost:5000/api/resources/user/${user.id}`);
+            const response = await fetch(`${API_URL}/api/resources/user/${user.id}`);
             const data = await response.json();
 
             if (data.success) {
@@ -46,7 +47,7 @@ const Resources = () => {
     // Mark resource as read
     const markAsRead = async (resourceId) => {
         try {
-            await fetch(`http://localhost:5000/api/resources/${resourceId}/read`, {
+            await fetch(`${API_URL}/api/resources/${resourceId}/read`, {
                 method: 'PUT'
             });
 

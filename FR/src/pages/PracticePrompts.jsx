@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Target, Clock, CheckCircle, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import API_URL from '../config/api';
 import './PracticePrompts.css';
 
 const PracticePrompts = () => {
@@ -20,14 +21,14 @@ const PracticePrompts = () => {
         
         try {
             console.log('Fetching user prompts from admin endpoint...');
-            const response = await fetch(`http://localhost:5000/api/admin/get-prompts`);
+            const response = await fetch(`${API_URL}/api/admin/get-prompts`);
             if (response.ok) {
                 const data = await response.json();
                 console.log('Admin prompts data:', data);
                 
                 if (data.success && data.prompts) {
                     // Fetch user submissions to check status
-                    const submissionsResponse = await fetch(`http://localhost:5000/api/submissions`);
+                    const submissionsResponse = await fetch(`${API_URL}/api/submissions`);
                     const submissionsData = await submissionsResponse.json();
                     const userSubmissions = submissionsData.submissions?.filter(s => s.userId === user.id) || [];
                     

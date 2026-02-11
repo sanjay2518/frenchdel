@@ -8,6 +8,7 @@ import {
     Trash2, Loader, Star, ThumbsUp,
     AlertCircle, Lightbulb, ChevronDown, ChevronUp, XCircle
 } from 'lucide-react';
+import API_URL from '../config/api';
 import './Practice.css';
 
 const SpeakingPractice = () => {
@@ -98,7 +99,7 @@ const SpeakingPractice = () => {
         const fetchPrompts = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('http://localhost:5000/api/prompts/type/speaking');
+                const response = await fetch(`${API_URL}/api/prompts/type/speaking`);
                 const data = await response.json();
                 if (data.success) setPrompts(data.prompts || []);
             } catch (err) {
@@ -195,7 +196,7 @@ const SpeakingPractice = () => {
         setFeedback(null);
 
         try {
-            const response = await fetch('http://localhost:5000/api/feedback/speaking', {
+            const response = await fetch(`${API_URL}/api/feedback/speaking`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
