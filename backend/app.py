@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from routes.auth_routes import auth_bp
 from routes.notifications import notifications_bp
@@ -21,6 +21,7 @@ CORS(app,
          'http://localhost:3000', 
          'http://localhost:5173',
          'https://frenchdel.onrender.com',
+         'https://frenchdel-1.onrender.com',
          'https://french-learning-app-fnpy.onrender.com'
      ]}},
      supports_credentials=True,
