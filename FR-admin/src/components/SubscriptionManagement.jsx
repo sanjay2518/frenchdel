@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CreditCard, X } from 'lucide-react';
+import API_URL from '../config';
 
 const SubscriptionManagement = () => {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -12,7 +13,7 @@ const SubscriptionManagement = () => {
 
   const fetchSubscriptions = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/subscriptions');
+      const response = await fetch(`${API_URL}/api/subscriptions`);
       const data = await response.json();
       setSubscriptions(data.subscriptions || []);
       setStats(data.stats || { active: 0, revenue: 0, cancelled: 0 });
@@ -25,7 +26,7 @@ const SubscriptionManagement = () => {
 
   const cancelSubscription = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/subscriptions/${id}/cancel`, {
+      await fetch(`${API_URL}/api/subscriptions/${id}/cancel`, {
         method: 'POST'
       });
       await fetchSubscriptions();
@@ -36,7 +37,7 @@ const SubscriptionManagement = () => {
 
   const reactivateSubscription = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/subscriptions/${id}/reactivate`, {
+      await fetch(`${API_URL}/api/subscriptions/${id}/reactivate`, {
         method: 'POST'
       });
       await fetchSubscriptions();

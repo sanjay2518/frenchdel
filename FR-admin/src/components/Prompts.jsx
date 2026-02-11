@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import API_URL from '../config';
 
 const Prompts = () => {
   const [prompts, setPrompts] = useState([]);
@@ -21,7 +22,7 @@ const Prompts = () => {
   const fetchPrompts = async () => {
     try {
       console.log('Fetching prompts from NEW endpoint...');
-      const response = await fetch('http://localhost:5000/api/admin/get-prompts');
+      const response = await fetch(`${API_URL}/api/admin/get-prompts`);
       console.log('NEW endpoint response status:', response.status);
       
       if (!response.ok) {
@@ -49,7 +50,7 @@ const Prompts = () => {
     setLoading(true);
     try {
       console.log('Sending prompt data to NEW endpoint:', newPrompt);
-      const response = await fetch('http://localhost:5000/api/admin/create-prompt', {
+      const response = await fetch(`${API_URL}/api/admin/create-prompt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newPrompt)
@@ -82,7 +83,7 @@ const Prompts = () => {
 
   const deletePrompt = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/prompts/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/api/prompts/${id}`, { method: 'DELETE' });
       await fetchPrompts();
     } catch (error) {
       console.error('Failed to delete prompt:', error);

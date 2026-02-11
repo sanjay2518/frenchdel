@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Play, Download, Eye, RefreshCw, CheckCircle, Clock, AlertCircle, Inbox } from 'lucide-react';
+import API_URL from '../config';
 
 const Submissions = () => {
   const [submissions, setSubmissions] = useState([]);
@@ -16,7 +17,7 @@ const Submissions = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch('http://localhost:5000/api/submissions');
+      const response = await fetch(`${API_URL}/api/submissions`);
       const data = await response.json();
 
       if (data.error) {
@@ -170,7 +171,7 @@ const Submissions = () => {
                           title="Play Audio"
                           onClick={() => {
                             if (submission.audioFile) {
-                              const audio = new Audio(`http://localhost:5000/api/uploads/audio/${submission.audioFile}`);
+                              const audio = new Audio(`${API_URL}/api/uploads/audio/${submission.audioFile}`);
                               audio.play().catch(e => console.log('Audio play failed:', e));
                             } else {
                               alert('No audio file available');

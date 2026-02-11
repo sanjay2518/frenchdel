@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { UserX, UserCheck, Mail, Users, UserPlus, Clock } from 'lucide-react';
+import API_URL from '../config';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -12,7 +13,7 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/users');
+      const response = await fetch(`${API_URL}/api/users`);
       const data = await response.json();
       setUsers(data.users || []);
       setStats(data.stats || { total: 0, active: 0, recent: 0 });
@@ -25,7 +26,7 @@ const UserManagement = () => {
 
   const toggleUserStatus = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/users/${id}/toggle-status`, {
+      await fetch(`${API_URL}/api/users/${id}/toggle-status`, {
         method: 'POST'
       });
       // Update local state for immediate feedback
@@ -41,7 +42,7 @@ const UserManagement = () => {
 
   const sendEmail = async (email) => {
     try {
-      await fetch('http://localhost:5000/api/notifications/send-admin-email', {
+      await fetch(`${API_URL}/api/notifications/send-admin-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, message: 'Admin notification' })

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Upload, Play, Video, Volume2, Trash2, Eye, FileText, Plus } from 'lucide-react';
+import API_URL from '../config';
 
 const LearningMaterials = () => {
   const [materials, setMaterials] = useState([]);
@@ -18,7 +19,7 @@ const LearningMaterials = () => {
       formData.append('title', file.name.split('.')[0]);
       formData.append('category', 'general');
       
-      const response = await fetch('http://localhost:5000/api/materials/upload-material', {
+      const response = await fetch(`${API_URL}/api/materials/upload-material`, {
         method: 'POST',
         body: formData
       });
@@ -41,7 +42,7 @@ const LearningMaterials = () => {
 
   const fetchMaterials = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/materials/materials');
+      const response = await fetch(`${API_URL}/api/materials/materials`);
       const data = await response.json();
       setMaterials(data.materials || []);
     } catch (error) {
@@ -57,7 +58,7 @@ const LearningMaterials = () => {
     if (!writingContent.title || !writingContent.content) return;
     
     try {
-      const response = await fetch('http://localhost:5000/api/materials/add-writing', {
+      const response = await fetch(`${API_URL}/api/materials/add-writing`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(writingContent)
@@ -75,7 +76,7 @@ const LearningMaterials = () => {
 
   const deleteMaterial = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/materials/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/api/materials/${id}`, { method: 'DELETE' });
       await fetchMaterials();
     } catch (error) {
       console.error('Failed to delete material:', error);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Send, Mic, PenTool, Play, Eye, X, CheckCircle, Clock, RefreshCw, AlertCircle, Trash2 } from 'lucide-react';
+import API_URL from '../config';
 
 const Feedback = () => {
   const [allSubmissions, setAllSubmissions] = useState([]);
@@ -24,7 +25,7 @@ const Feedback = () => {
     setError('');
     try {
       // Fetch ALL submissions from database (real-time data only)
-      const response = await fetch('http://localhost:5000/api/submissions');
+      const response = await fetch(`${API_URL}/api/submissions`);
       const data = await response.json();
 
       if (data.error) {
@@ -62,7 +63,7 @@ const Feedback = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/submissions/${selectedSubmission.id}/feedback`, {
+      const response = await fetch(`${API_URL}/api/submissions/${selectedSubmission.id}/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -94,7 +95,7 @@ const Feedback = () => {
   const deleteSubmission = async (submissionId) => {
     setDeleting(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/submissions/${submissionId}`, {
+      const response = await fetch(`${API_URL}/api/submissions/${submissionId}`, {
         method: 'DELETE'
       });
 
@@ -121,7 +122,7 @@ const Feedback = () => {
 
   const playAudio = (audioFile) => {
     if (audioFile) {
-      const audio = new Audio(`http://localhost:5000/api/uploads/audio/${audioFile}`);
+      const audio = new Audio(`${API_URL}/api/uploads/audio/${audioFile}`);
       audio.play().catch(e => console.log('Audio play failed:', e));
     } else {
       alert('No audio file available');

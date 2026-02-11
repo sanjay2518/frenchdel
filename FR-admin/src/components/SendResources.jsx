@@ -4,6 +4,7 @@ import {
     BookOpen, MessageSquare, Search, CheckCircle,
     AlertCircle, Loader, X, Trash2, RefreshCw, Clock
 } from 'lucide-react';
+import API_URL from '../config';
 
 const SendResources = () => {
     const [users, setUsers] = useState([]);
@@ -42,7 +43,7 @@ const SendResources = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/admin/users-list');
+                const response = await fetch(`${API_URL}/api/admin/users-list`);
                 const data = await response.json();
 
                 if (data.success) {
@@ -63,7 +64,7 @@ const SendResources = () => {
         setLoadingResources(true);
         setError(null);
         try {
-            const response = await fetch('http://localhost:5000/api/resources/all');
+            const response = await fetch(`${API_URL}/api/resources/all`);
             const data = await response.json();
 
             console.log('Fetch resources response:', data);
@@ -93,7 +94,7 @@ const SendResources = () => {
     const deleteResource = async (resourceId) => {
         setDeleting(true);
         try {
-            const response = await fetch(`http://localhost:5000/api/resources/${resourceId}`, {
+            const response = await fetch(`${API_URL}/api/resources/${resourceId}`, {
                 method: 'DELETE'
             });
 
@@ -152,7 +153,7 @@ const SendResources = () => {
         setSuccess(null);
 
         try {
-            const response = await fetch('http://localhost:5000/api/resources/send', {
+            const response = await fetch(`${API_URL}/api/resources/send`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
