@@ -83,7 +83,7 @@ const Submissions = () => {
           </select>
           <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
             <option value="all">All Types</option>
-            <option value="speaking">Speaking</option>
+            <option value="speaking">Pronunciation</option>
             <option value="writing">Writing</option>
           </select>
         </div>

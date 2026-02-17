@@ -20,7 +20,7 @@ def create_admin_prompt():
         prompt_data = {
             'title': data.get('title'),
             'description': data.get('description'),
-            'type': data.get('type', 'speaking'),
+            'type': data.get('type', 'speaking'),  # 'speaking' = pronunciation practice
             'difficulty': data.get('difficulty', 'beginner'),
             'level': data.get('level', 'A1'),
             'due_date': data.get('dueDate'),

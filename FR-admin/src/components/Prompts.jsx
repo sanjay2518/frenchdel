@@ -4,10 +4,10 @@ import API_URL from '../config';
 
 const Prompts = () => {
   const [prompts, setPrompts] = useState([]);
-  const [newPrompt, setNewPrompt] = useState({ 
-    title: '', 
-    description: '', 
-    type: 'speaking', 
+  const [newPrompt, setNewPrompt] = useState({
+    title: '',
+    description: '',
+    type: 'speaking', // pronunciation practice
     difficulty: 'beginner',
     dueDate: '',
     level: 'A1'
@@ -24,14 +24,14 @@ const Prompts = () => {
       console.log('Fetching prompts from NEW endpoint...');
       const response = await fetch(`${API_URL}/api/admin/get-prompts`);
       console.log('NEW endpoint response status:', response.status);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log('NEW endpoint response data:', data);
-      
+
       if (data.success) {
         setPrompts(data.prompts || []);
       } else {
@@ -46,7 +46,7 @@ const Prompts = () => {
 
   const addPrompt = async () => {
     if (!newPrompt.title || !newPrompt.description) return;
-    
+
     setLoading(true);
     try {
       console.log('Sending prompt data to NEW endpoint:', newPrompt);
@@ -55,17 +55,17 @@ const Prompts = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newPrompt)
       });
-      
+
       const result = await response.json();
       console.log('NEW endpoint response:', result);
-      
+
       if (response.ok && result.success) {
         alert('Prompt added successfully to database!');
         await fetchPrompts();
-        setNewPrompt({ 
-          title: '', 
-          description: '', 
-          type: 'speaking', 
+        setNewPrompt({
+          title: '',
+          description: '',
+          type: 'speaking', // pronunciation practice
           difficulty: 'beginner',
           dueDate: '',
           level: 'A1'
@@ -103,18 +103,18 @@ const Prompts = () => {
             type="text"
             placeholder="Prompt Title"
             value={newPrompt.title}
-            onChange={(e) => setNewPrompt({...newPrompt, title: e.target.value})}
+            onChange={(e) => setNewPrompt({ ...newPrompt, title: e.target.value })}
           />
           <select
             value={newPrompt.type}
-            onChange={(e) => setNewPrompt({...newPrompt, type: e.target.value})}
+            onChange={(e) => setNewPrompt({ ...newPrompt, type: e.target.value })}
           >
-            <option value="speaking">Speaking</option>
+            <option value="speaking">Pronunciation</option>
             <option value="writing">Writing</option>
           </select>
           <select
             value={newPrompt.difficulty}
-            onChange={(e) => setNewPrompt({...newPrompt, difficulty: e.target.value})}
+            onChange={(e) => setNewPrompt({ ...newPrompt, difficulty: e.target.value })}
           >
             <option value="beginner">Beginner</option>
             <option value="intermediate">Intermediate</option>
@@ -122,7 +122,7 @@ const Prompts = () => {
           </select>
           <select
             value={newPrompt.level}
-            onChange={(e) => setNewPrompt({...newPrompt, level: e.target.value})}
+            onChange={(e) => setNewPrompt({ ...newPrompt, level: e.target.value })}
           >
             <option value="A1">A1</option>
             <option value="A2">A2</option>
@@ -132,14 +132,14 @@ const Prompts = () => {
           <input
             type="date"
             value={newPrompt.dueDate}
-            onChange={(e) => setNewPrompt({...newPrompt, dueDate: e.target.value})}
+            onChange={(e) => setNewPrompt({ ...newPrompt, dueDate: e.target.value })}
             min={new Date().toISOString().split('T')[0]}
           />
         </div>
         <textarea
           placeholder="Prompt Description"
           value={newPrompt.description}
-          onChange={(e) => setNewPrompt({...newPrompt, description: e.target.value})}
+          onChange={(e) => setNewPrompt({ ...newPrompt, description: e.target.value })}
           rows="3"
         />
         <button className="btn-primary" onClick={addPrompt} disabled={loading}>

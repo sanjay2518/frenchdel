@@ -171,7 +171,7 @@ const Feedback = () => {
             className="filter-select"
           >
             <option value="all">All Types</option>
-            <option value="speaking">Speaking Only</option>
+            <option value="speaking">Pronunciation Only</option>
             <option value="writing">Writing Only</option>
           </select>
         </div>
@@ -285,7 +285,7 @@ const Feedback = () => {
                 <div>
                   <h3>{selectedSubmission.promptTitle}</h3>
                   <p className="practice-type">
-                    {selectedSubmission.type === 'speaking' ? 'Speaking Practice' : 'Writing Practice'}
+                    {selectedSubmission.type === 'speaking' ? 'Pronunciation Practice' : 'Writing Practice'}
                     {selectedSubmission.status === 'reviewed' && (
                       <span className="reviewed-indicator"> (Already Reviewed)</span>
                     )}
@@ -351,7 +351,7 @@ const Feedback = () => {
 
               <div className="form-group">
                 <label>
-                  Feedback Comments for {selectedSubmission.type === 'speaking' ? 'Speaking' : 'Writing'}
+                  Feedback Comments for {selectedSubmission.type === 'speaking' ? 'Pronunciation' : 'Writing'}
                 </label>
                 <textarea
                   rows="8"
@@ -369,7 +369,7 @@ const Feedback = () => {
                   disabled={loading || !feedback.score || !feedback.comments}
                 >
                   <Send size={16} />
-                  {loading ? 'Sending Feedback...' : `Send ${selectedSubmission.type === 'speaking' ? 'Speaking' : 'Writing'} Feedback`}
+                  {loading ? 'Sending Feedback...' : `Send ${selectedSubmission.type === 'speaking' ? 'Pronunciation' : 'Writing'} Feedback`}
                 </button>
               ) : (
                 <div className="already-reviewed-notice">
