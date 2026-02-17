@@ -17,7 +17,8 @@ import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Practice from './pages/Practice';
-import SpeakingPractice from './pages/SpeakingPractice';
+import PronunciationPractice from './pages/PronunciationPractice';
+import FreeSpeakingPractice from './pages/FreeSpeakingPractice';
 import WritingPractice from './pages/WritingPractice';
 import PracticePrompts from './pages/PracticePrompts';
 import PromptDetail from './pages/PromptDetail';
@@ -128,7 +129,8 @@ function AppRoutes() {
           <AppLayout hideFooter variant="fullscreen" />
         </ProtectedRoute>
       }>
-        <Route path="practice/speaking" element={<SpeakingPractice />} />
+        <Route path="practice/speaking" element={<FreeSpeakingPractice />} />
+        <Route path="practice/pronunciation" element={<PronunciationPractice />} />
         <Route path="practice/writing" element={<WritingPractice />} />
       </Route>
 

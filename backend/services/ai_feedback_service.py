@@ -202,6 +202,79 @@ Provide specific feedback. Return ONLY JSON:
             print(f"❌ Error: {e}")
             return self._get_fallback_feedback('speaking')
     
+    def generate_free_speaking_feedback(self, transcription=None, duration=0):
+        """Generate comprehensive feedback for free-form speaking practice (no prompt)"""
+        print(f"\n=== FREE SPEAKING FEEDBACK ===")
+        print(f"Duration: {duration}s, Transcription length: {len(transcription or '')}")
+        
+        if not self.model:
+            return self._get_fallback_feedback('free-speaking')
+        
+        if not transcription or len(transcription.strip()) < 10:
+            return {
+                "type": "free-speaking", "ai_generated": True, "is_valid": False,
+                "error": "no_transcription",
+                "message": "Please speak in French to receive AI feedback.",
+                "overall_score": 0
+            }
+        
+        is_french, msg = self.validate_french_content(transcription)
+        if not is_french:
+            return {
+                "type": "free-speaking", "ai_generated": True, "is_valid": False,
+                "error": "not_french",
+                "message": f"Only French language is accepted. {msg}",
+                "overall_score": 0
+            }
+        
+        try:
+            prompt = f"""You are an expert French language tutor. A student has spoken freely in French (no specific topic/prompt was given). Analyze their speech thoroughly.
+
+Duration: {duration} seconds
+
+Student said: "{transcription}"
+
+Analyze their speech comprehensively and provide detailed, specific feedback. Return ONLY valid JSON (no markdown code blocks):
+{{
+    "overall_score": 1-10,
+    "summary": "2-3 sentences overall assessment of their French speaking ability based on this sample",
+    "strengths": ["specific positive point with quote from their speech", "another strength"],
+    "areas_for_improvement": ["specific area needing work with example from speech", "another area"],
+    "vocabulary_suggestions": [
+        {{"used": "word they used", "alternative": "better/more natural word", "explanation": "why the alternative is better"}},
+        {{"used": "another word", "alternative": "better option", "explanation": "context"}}
+    ],
+    "fluency_assessment": "detailed assessment of their speaking flow, naturalness, and fluency level",
+    "grammar_corrections": [
+        {{"original": "exact error from their speech", "corrected": "correct version", "explanation": "grammar rule explanation"}},
+        {{"original": "another error", "corrected": "fixed version", "explanation": "why"}}
+    ],
+    "pronunciation_notes": [
+        {{"word": "word that may be mispronounced", "suggestion": "correct pronunciation guide"}}
+    ],
+    "tips": ["specific actionable tip to improve", "another tip"],
+    "encouragement": "personalized encouraging message based on their level"
+}}"""
+
+            response = self.model.generate_content(prompt)
+            text = response.text.strip()
+            
+            if '```json' in text:
+                text = text.split('```json')[1].split('```')[0].strip()
+            elif '```' in text:
+                text = text.split('```')[1].split('```')[0].strip()
+            
+            data = json.loads(text)
+            data['type'] = 'free-speaking'
+            data['ai_generated'] = True
+            data['is_valid'] = True
+            print("✅ Generated free speaking feedback")
+            return data
+            
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            return self._get_fallback_feedback('free-speaking')
+    
     def _get_fallback_feedback(self, practice_type):
         return {
             "type": practice_type,

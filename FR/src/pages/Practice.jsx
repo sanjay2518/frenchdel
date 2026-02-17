@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Mic, PenTool, ArrowLeft, Loader, AlertCircle } from 'lucide-react';
+import { Mic, PenTool, ArrowLeft, Loader, AlertCircle, Volume2, MessageCircle } from 'lucide-react';
 import API_URL from '../config/api';
 import './Practice.css';
 
@@ -43,7 +43,6 @@ const Practice = () => {
 
     const hasSpeaking = speakingPrompts.length > 0;
     const hasWriting = writingPrompts.length > 0;
-    const hasAnyContent = hasSpeaking || hasWriting;
 
     return (
         <div className="practice-page">
@@ -70,31 +69,37 @@ const Practice = () => {
                             Try Again
                         </button>
                     </div>
-                ) : !hasAnyContent ? (
-                    <div className="practice-no-content">
-                        <AlertCircle size={48} />
-                        <h2>No Practice Content Available</h2>
-                        <p>The admin has not uploaded any practice prompts yet.</p>
-                        <p className="hint">Please check back later when new content is available.</p>
-                        <Link to="/dashboard" className="btn btn-primary">
-                            Return to Dashboard
-                        </Link>
-                    </div>
                 ) : (
                     <div className="practice-selection-grid">
+                        {/* NEW: Free Speaking Practice - Always visible */}
+                        <Link to="/practice/speaking" className="selection-card">
+                            <div className="selection-icon free-speaking">
+                                <MessageCircle size={40} />
+                            </div>
+                            <h2>Speaking Practice</h2>
+                            <p>
+                                Speak freely in French about anything you want.
+                                Get instant AI-powered feedback on your grammar, fluency,
+                                vocabulary, and pronunciation. No prompts needed!
+                            </p>
+                            <span className="prompt-count free-badge">🇫🇷 French Only • Free Speech</span>
+                            <span className="btn btn-primary">Start Speaking</span>
+                        </Link>
+
+                        {/* Pronunciation Practice (renamed from Speaking Practice) */}
                         {hasSpeaking && (
-                            <Link to="/practice/speaking" className="selection-card">
+                            <Link to="/practice/pronunciation" className="selection-card">
                                 <div className="selection-icon speaking">
-                                    <Mic size={40} />
+                                    <Volume2 size={40} />
                                 </div>
-                                <h2>Speaking Practice</h2>
+                                <h2>Pronunciation Practice</h2>
                                 <p>
                                     Record your voice responding to various prompts.
                                     Improve your pronunciation, fluency, and oral expression
                                     with expert feedback on your recordings.
                                 </p>
                                 <span className="prompt-count">{speakingPrompts.length} prompt{speakingPrompts.length !== 1 ? 's' : ''} available</span>
-                                <span className="btn btn-primary">Start Speaking</span>
+                                <span className="btn btn-primary">Start Practice</span>
                             </Link>
                         )}
 

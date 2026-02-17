@@ -11,7 +11,7 @@ const Home = () => {
         {
             icon: <Mic size={28} />,
             title: 'Speaking Practice',
-            description: 'Record your voice and receive detailed pronunciation feedback from expert instructors.',
+            description: 'Speak freely in French about anything and receive AI-powered feedback on grammar, fluency, and vocabulary.',
             color: 'blue'
         },
         {

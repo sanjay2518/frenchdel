@@ -112,6 +112,64 @@ def get_speaking_feedback():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
+@feedback_bp.route('/feedback/free-speaking', methods=['POST'])
+def get_free_speaking_feedback():
+    """Generate AI feedback for free-form speaking practice (no prompt needed)"""
+    print("=== FREE SPEAKING FEEDBACK ENDPOINT CALLED ===")
+    
+    try:
+        data = request.get_json()
+        print(f"Received free speaking feedback request")
+        
+        transcription = data.get('transcription', '')
+        duration = data.get('duration', 0)
+        user_id = data.get('userId')
+        
+        if not transcription or len(transcription.strip()) < 10:
+            return jsonify({
+                'success': True,
+                'feedback': {
+                    'type': 'free-speaking',
+                    'ai_generated': True,
+                    'is_valid': False,
+                    'error': 'no_transcription',
+                    'message': 'No French speech was detected. Please speak in French while recording.',
+                    'overall_score': 0
+                }
+            }), 200
+        
+        # Generate AI feedback using the free speaking method
+        feedback = ai_feedback_service.generate_free_speaking_feedback(
+            transcription=transcription,
+            duration=duration
+        )
+        
+        # Store submission in database if user is authenticated
+        if user_id and supabase_service and supabase_service.client:
+            try:
+                submission_data = {
+                    'user_id': user_id,
+                    'submission_text': transcription,
+                    'status': 'reviewed',
+                    'score': feedback.get('overall_score'),
+                    'feedback': str(feedback)
+                }
+                supabase_service.client.table('user_prompt_submissions').insert(submission_data).execute()
+                print("Free speaking submission saved to database")
+            except Exception as db_error:
+                print(f"Error saving to database: {str(db_error)}")
+        
+        return jsonify({
+            'success': True,
+            'feedback': feedback
+        }), 200
+        
+    except Exception as e:
+        print(f"Error in get_free_speaking_feedback: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
 @feedback_bp.route('/feedback/history/<user_id>', methods=['GET'])
 def get_feedback_history(user_id):
     """Get feedback history for a user"""

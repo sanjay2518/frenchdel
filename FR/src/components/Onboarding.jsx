@@ -28,7 +28,7 @@ const Onboarding = ({ onComplete, userName }) => {
         {
             icon: <Mic size={48} />,
             title: 'Speaking Practice',
-            description: 'Record yourself speaking French and get instant AI-powered feedback on your pronunciation, grammar, and fluency.',
+            description: 'Speak freely in French about anything and get instant AI-powered feedback on your grammar, fluency, vocabulary, and pronunciation.',
             link: '/practice/speaking',
             linkText: 'Try Speaking',
             color: 'blue'

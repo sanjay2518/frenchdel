@@ -80,12 +80,12 @@ const HowItWorks = () => {
         {
             type: 'Speaking Practice',
             icon: <Mic size={40} />,
-            description: 'Improve your French pronunciation and speaking fluency',
+            description: 'Speak freely in French and get comprehensive AI analysis',
             features: [
-                'Record audio directly in browser',
-                'Upload pre-recorded audio files',
-                'Get pronunciation feedback',
-                'Learn natural expressions'
+                'Speak freely about any topic in French',
+                'Real-time speech-to-text transcription',
+                'Get grammar, fluency & vocabulary feedback',
+                'Instant AI-powered analysis'
             ],
             color: 'blue'
         },

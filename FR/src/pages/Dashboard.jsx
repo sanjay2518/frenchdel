@@ -161,6 +161,12 @@ const Dashboard = () => {
                                     </div>
                                     <span>Speaking Practice</span>
                                 </Link>
+                                <Link to="/practice/pronunciation" className="quick-action-item">
+                                    <div className="action-icon speaking">
+                                        <Mic size={28} />
+                                    </div>
+                                    <span>Pronunciation Practice</span>
+                                </Link>
                                 <Link to="/practice/writing" className="quick-action-item">
                                     <div className="action-icon writing">
                                         <PenTool size={28} />

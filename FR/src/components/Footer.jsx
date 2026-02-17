@@ -66,6 +66,7 @@ const Footer = () => {
                             <h4 className="footer-title">Practice</h4>
                             <ul className="footer-links">
                                 <li><Link to="/practice/speaking">Speaking Practice</Link></li>
+                                <li><Link to="/practice/pronunciation">Pronunciation Practice</Link></li>
                                 <li><Link to="/practice/writing">Writing Practice</Link></li>
                                 <li><Link to="/dashboard">My Dashboard</Link></li>
                                 <li><Link to="/dashboard/submissions">My Submissions</Link></li>
