@@ -81,11 +81,24 @@ const PronunciationPractice = () => {
                 if (event.error === 'not-allowed') {
                     alert('Microphone access denied. Please allow microphone access for speech recognition.');
                 }
+                if (event.error === 'aborted' || event.error === 'network') {
+                    // Chrome mobile: recognition stops when app goes to background
+                    if (isRecording && recognitionRef.current) {
+                        setTimeout(() => {
+                            try { recognitionRef.current.start(); } catch (e) { /* already running */ }
+                        }, 500);
+                    }
+                }
+                if (event.error === 'no-speech' && isRecording && recognitionRef.current) {
+                    try { recognitionRef.current.start(); } catch (e) { /* already running */ }
+                }
             };
 
             recognitionRef.current.onend = () => {
                 if (isRecording && recognitionRef.current) {
-                    try { recognitionRef.current.start(); } catch (e) { /* already running */ }
+                    setTimeout(() => {
+                        try { recognitionRef.current.start(); } catch (e) { /* already running */ }
+                    }, 300);
                 }
             };
         }

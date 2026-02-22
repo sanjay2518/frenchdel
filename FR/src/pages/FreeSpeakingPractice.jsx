@@ -86,6 +86,15 @@ const FreeSpeakingPractice = () => {
                 if (event.error === 'not-allowed') {
                     alert('Microphone access denied. Please allow microphone access.');
                 }
+                if (event.error === 'aborted' || event.error === 'network') {
+                    // Chrome mobile: recognition stops when app goes to background
+                    // Try to restart when still recording
+                    if (isRecordingRef.current) {
+                        setTimeout(() => {
+                            try { recognition.start(); } catch (e) { /* already running */ }
+                        }, 500);
+                    }
+                }
                 if (event.error === 'no-speech' && isRecordingRef.current) {
                     try { recognition.start(); } catch (e) { /* already running */ }
                 }
@@ -93,7 +102,9 @@ const FreeSpeakingPractice = () => {
 
             recognition.onend = () => {
                 if (isRecordingRef.current) {
-                    try { recognition.start(); } catch (e) { /* skip */ }
+                    setTimeout(() => {
+                        try { recognition.start(); } catch (e) { /* skip */ }
+                    }, 300);
                 }
             };
 
