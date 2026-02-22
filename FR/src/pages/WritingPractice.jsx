@@ -4,10 +4,24 @@ import { useUserData } from '../context/UserDataContext';
 import { useAuth } from '../context/AuthContext';
 import {
     Send, ArrowLeft, CheckCircle, BookOpen, Trash2, Loader,
-    Star, ThumbsUp, AlertCircle, Lightbulb, ChevronDown, ChevronUp, XCircle
+    Star, ThumbsUp, AlertCircle, Lightbulb, ChevronDown, ChevronUp, XCircle,
+    Eye, EyeOff, ArrowRight
 } from 'lucide-react';
 import API_URL from '../config/api';
 import './Practice.css';
+
+const ERROR_TYPE_CONFIG = {
+    tense: { label: 'Tense', color: '#9f1239', bg: '#fff1f2' },
+    grammar: { label: 'Grammar', color: '#92400e', bg: '#fffbeb' },
+    agreement: { label: 'Agreement', color: '#6d28d9', bg: '#f5f3ff' },
+    structure: { label: 'Structure', color: '#1e40af', bg: '#eff6ff' },
+    pronoun: { label: 'Pronoun', color: '#9d174d', bg: '#fdf2f8' },
+    preposition: { label: 'Preposition', color: '#155e75', bg: '#ecfeff' },
+    vocabulary: { label: 'Vocabulary', color: '#5b21b6', bg: '#f5f3ff' },
+    punctuation: { label: 'Punctuation', color: '#64748b', bg: '#f8fafc' },
+};
+
+const SEVERITY_ORDER = { high: 0, medium: 1, low: 2 };
 
 const WritingPractice = () => {
     const { addSubmission } = useUserData();
@@ -21,6 +35,7 @@ const WritingPractice = () => {
     const [error, setError] = useState(null);
     const [feedback, setFeedback] = useState(null);
     const [showDetailedFeedback, setShowDetailedFeedback] = useState(false);
+    const [expandedCorrections, setExpandedCorrections] = useState({});
 
     useEffect(() => {
         const fetchPrompts = async () => {
@@ -84,6 +99,11 @@ const WritingPractice = () => {
         setSelectedPrompt(null);
         setFeedback(null);
         setShowDetailedFeedback(false);
+        setExpandedCorrections({});
+    };
+
+    const toggleCorrectionDetail = (index) => {
+        setExpandedCorrections(prev => ({ ...prev, [index]: !prev[index] }));
     };
 
     const renderScoreStars = (score) => {
@@ -95,14 +115,26 @@ const WritingPractice = () => {
         return stars;
     };
 
+    const getErrorTypeConfig = (type) => ERROR_TYPE_CONFIG[type] || ERROR_TYPE_CONFIG.grammar;
+
+    const getSortedCorrections = (corrections) => {
+        if (!corrections) return [];
+        return [...corrections].sort((a, b) => {
+            const sa = SEVERITY_ORDER[a.severity] ?? 1;
+            const sb = SEVERITY_ORDER[b.severity] ?? 1;
+            return sa - sb;
+        });
+    };
+
     // Feedback Screen
     if (submitted) {
         const isInvalid = feedback && !feedback.is_valid;
+        const sortedCorrections = getSortedCorrections(feedback?.corrections);
 
         return (
             <div className="practice-page">
                 <div className="feedback-page">
-                    <div className="feedback-card">
+                    <div className="feedback-card feedback-card-wide">
                         {/* Header */}
                         <div className="feedback-card-header">
                             {isInvalid ? (
@@ -110,8 +142,8 @@ const WritingPractice = () => {
                             ) : (
                                 <CheckCircle size={48} className="success-icon" />
                             )}
-                            <h2>{isInvalid ? 'Please Try Again' : 'Practice Complete!'}</h2>
-                            <p>{isInvalid ? feedback.message : 'Here\'s your AI-powered feedback'}</p>
+                            <h2>{isInvalid ? 'Please Try Again' : 'Analysis Complete'}</h2>
+                            <p>{isInvalid ? feedback.message : 'Review your corrections below'}</p>
                         </div>
 
                         {!isInvalid && feedback && (
@@ -127,7 +159,94 @@ const WritingPractice = () => {
                                     <p>{feedback.summary}</p>
                                 </div>
 
-                                {/* Strengths */}
+                                {/* ===== SPLIT VIEW: Original vs Corrected ===== */}
+                                {feedback.corrected_text && (
+                                    <div className="text-comparison">
+                                        <h4 className="comparison-title">
+                                            <Eye size={18} /> Text Comparison
+                                        </h4>
+                                        <div className="comparison-grid">
+                                            <div className="comparison-panel original">
+                                                <div className="panel-label">
+                                                    <span className="label-dot original-dot"></span>
+                                                    Your Text
+                                                </div>
+                                                <div className="panel-text">{feedback.original_text || text}</div>
+                                            </div>
+                                            <div className="comparison-divider">
+                                                <ArrowRight size={20} />
+                                            </div>
+                                            <div className="comparison-panel corrected">
+                                                <div className="panel-label">
+                                                    <span className="label-dot corrected-dot"></span>
+                                                    Corrected Text
+                                                </div>
+                                                <div className="panel-text">{feedback.corrected_text}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* ===== CORRECTIONS WITH ERROR TYPES ===== */}
+                                {sortedCorrections.length > 0 && (
+                                    <div className="corrections-section">
+                                        <h4 className="section-title">
+                                            <AlertCircle size={18} /> Corrections
+                                            <span className="correction-count">{sortedCorrections.length} {sortedCorrections.length === 1 ? 'issue' : 'issues'}</span>
+                                        </h4>
+                                        <div className="corrections-list">
+                                            {sortedCorrections.map((c, i) => {
+                                                const typeConfig = getErrorTypeConfig(c.type);
+                                                const briefText = c.brief || c.explanation || '';
+                                                const ruleText = c.rule || '';
+                                                return (
+                                                    <div key={i} className={`correction-card severity-${c.severity || 'medium'}`}>
+                                                        <div className="correction-card-header">
+                                                            <span
+                                                                className="error-type-badge"
+                                                                style={{ color: typeConfig.color, background: typeConfig.bg }}
+                                                            >
+                                                                {typeConfig.label}
+                                                            </span>
+                                                            {c.severity && (
+                                                                <span className={`severity-indicator severity-${c.severity}`}>
+                                                                    {c.severity}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="correction-row">
+                                                            <span className="wrong">{c.original}</span>
+                                                            <span className="arrow">→</span>
+                                                            <span className="correct">{c.corrected}</span>
+                                                        </div>
+                                                        {briefText && (
+                                                            <p className="correction-brief">{briefText}</p>
+                                                        )}
+                                                        {ruleText && (
+                                                            <>
+                                                                <button
+                                                                    className="detail-toggle"
+                                                                    onClick={() => toggleCorrectionDetail(i)}
+                                                                >
+                                                                    {expandedCorrections[i] ? (
+                                                                        <>Hide grammar rule <ChevronUp size={14} /></>
+                                                                    ) : (
+                                                                        <>Show grammar rule <ChevronDown size={14} /></>
+                                                                    )}
+                                                                </button>
+                                                                {expandedCorrections[i] && (
+                                                                    <p className="correction-explanation-detail">{ruleText}</p>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Strengths — brief */}
                                 {feedback.strengths?.length > 0 && (
                                     <div className="feedback-box strengths">
                                         <h4><ThumbsUp size={18} /> Strengths</h4>
@@ -135,7 +254,7 @@ const WritingPractice = () => {
                                     </div>
                                 )}
 
-                                {/* Areas to Improve */}
+                                {/* Areas to Improve — brief */}
                                 {feedback.areas_for_improvement?.length > 0 && (
                                     <div className="feedback-box improvements">
                                         <h4><AlertCircle size={18} /> Areas to Improve</h4>
@@ -144,59 +263,39 @@ const WritingPractice = () => {
                                 )}
 
                                 {/* Expandable Details */}
-                                <button className="expand-btn" onClick={() => setShowDetailedFeedback(!showDetailedFeedback)}>
-                                    {showDetailedFeedback ? <>Hide Details <ChevronUp size={18} /></> : <>Show Details <ChevronDown size={18} /></>}
-                                </button>
+                                {(feedback.vocabulary_suggestions?.length > 0 || feedback.tips?.length > 0) && (
+                                    <>
+                                        <button className="expand-btn" onClick={() => setShowDetailedFeedback(!showDetailedFeedback)}>
+                                            {showDetailedFeedback ? <>Hide Details <ChevronUp size={18} /></> : <>Vocabulary & Tips <ChevronDown size={18} /></>}
+                                        </button>
 
-                                {showDetailedFeedback && (
-                                    <div className="detailed-section">
-                                        {/* Grammar Corrections */}
-                                        {feedback.grammar_corrections?.length > 0 && (
-                                            <div className="feedback-box grammar">
-                                                <h4>📝 Grammar Corrections</h4>
-                                                {feedback.grammar_corrections.map((c, i) => (
-                                                    <div key={i} className="correction-item">
-                                                        <div className="correction-row">
-                                                            <span className="wrong">{c.original}</span>
-                                                            <span className="arrow">→</span>
-                                                            <span className="correct">{c.corrected}</span>
-                                                        </div>
-                                                        <p className="explanation">{c.explanation}</p>
+                                        {showDetailedFeedback && (
+                                            <div className="detailed-section">
+                                                {/* Vocabulary */}
+                                                {feedback.vocabulary_suggestions?.length > 0 && (
+                                                    <div className="feedback-box vocabulary">
+                                                        <h4>📚 Vocabulary Suggestions</h4>
+                                                        {feedback.vocabulary_suggestions.map((v, i) => (
+                                                            <div key={i} className="vocab-item">
+                                                                <span className="old-word">{v.used}</span>
+                                                                <span className="arrow">→</span>
+                                                                <span className="new-word">{v.alternative}</span>
+                                                                <p className="explanation">{v.explanation}</p>
+                                                            </div>
+                                                        ))}
                                                     </div>
-                                                ))}
-                                            </div>
-                                        )}
+                                                )}
 
-                                        {/* Vocabulary */}
-                                        {feedback.vocabulary_suggestions?.length > 0 && (
-                                            <div className="feedback-box vocabulary">
-                                                <h4>📚 Vocabulary Suggestions</h4>
-                                                {feedback.vocabulary_suggestions.map((v, i) => (
-                                                    <div key={i} className="vocab-item">
-                                                        <span className="old-word">{v.used}</span>
-                                                        <span className="arrow">→</span>
-                                                        <span className="new-word">{v.alternative}</span>
-                                                        <p className="explanation">{v.explanation}</p>
+                                                {/* Tips */}
+                                                {feedback.tips?.length > 0 && (
+                                                    <div className="feedback-box tips">
+                                                        <h4><Lightbulb size={18} /> Tips</h4>
+                                                        <ul>{feedback.tips.map((t, i) => <li key={i}>{t}</li>)}</ul>
                                                     </div>
-                                                ))}
+                                                )}
                                             </div>
                                         )}
-
-                                        {/* Tips */}
-                                        {feedback.tips?.length > 0 && (
-                                            <div className="feedback-box tips">
-                                                <h4><Lightbulb size={18} /> Tips</h4>
-                                                <ul>{feedback.tips.map((t, i) => <li key={i}>{t}</li>)}</ul>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Encouragement */}
-                                {feedback.encouragement && (
-                                    <div className="encouragement-box">
-                                        <p>💪 {feedback.encouragement}</p>
-                                    </div>
+                                    </>
                                 )}
                             </>
                         )}

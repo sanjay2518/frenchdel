@@ -7,10 +7,23 @@ import {
     ArrowLeft, Clock, CheckCircle,
     Trash2, Loader, Star, ThumbsUp,
     AlertCircle, Lightbulb, ChevronDown, ChevronUp, XCircle,
-    Send, BookOpen, Volume2, MessageCircle
+    Send, BookOpen, Volume2, MessageCircle, Eye, ArrowRight
 } from 'lucide-react';
 import API_URL from '../config/api';
 import './FreeSpeakingPractice.css';
+
+const ERROR_TYPE_CONFIG = {
+    tense: { label: 'Tense', color: '#9f1239', bg: '#fff1f2' },
+    grammar: { label: 'Grammar', color: '#92400e', bg: '#fffbeb' },
+    agreement: { label: 'Agreement', color: '#6d28d9', bg: '#f5f3ff' },
+    structure: { label: 'Structure', color: '#1e40af', bg: '#eff6ff' },
+    pronoun: { label: 'Pronoun', color: '#9d174d', bg: '#fdf2f8' },
+    preposition: { label: 'Preposition', color: '#155e75', bg: '#ecfeff' },
+    vocabulary: { label: 'Vocabulary', color: '#5b21b6', bg: '#f5f3ff' },
+    punctuation: { label: 'Punctuation', color: '#64748b', bg: '#f8fafc' },
+};
+
+const SEVERITY_ORDER = { high: 0, medium: 1, low: 2 };
 
 const FreeSpeakingPractice = () => {
     const { addSubmission } = useUserData();
@@ -22,6 +35,7 @@ const FreeSpeakingPractice = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [feedback, setFeedback] = useState(null);
+    const [expandedCorrections, setExpandedCorrections] = useState({});
 
     // Real-time speech transcription
     const [transcription, setTranscription] = useState('');
@@ -114,6 +128,7 @@ const FreeSpeakingPractice = () => {
         try {
             setTranscription('');
             setFeedback(null);
+            setExpandedCorrections({});
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorderRef.current = new MediaRecorder(stream);
             audioChunksRef.current = [];
@@ -176,6 +191,7 @@ const FreeSpeakingPractice = () => {
         setRecordingTime(0);
         setTranscription('');
         setFeedback(null);
+        setExpandedCorrections({});
     };
 
     const formatTime = (seconds) => `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`;
@@ -209,18 +225,18 @@ const FreeSpeakingPractice = () => {
                 setFeedback({
                     type: 'free-speaking', ai_generated: false, is_valid: true, overall_score: null,
                     summary: `Server error: ${result.error}. Please try again later.`,
-                    strengths: ['You completed the speaking exercise!'],
-                    areas_for_improvement: ['Try again when the AI service is available'],
-                    tips: ['Keep practicing your French!'],
-                    encouragement: 'Don\'t worry — keep speaking French every day!'
+                    strengths: ['Exercise completed.'],
+                    areas_for_improvement: ['Try again when the AI service is available.'],
+                    corrections: [],
+                    tips: ['Keep practicing regularly.'],
                 });
             } else {
                 setFeedback({
                     type: 'free-speaking', ai_generated: false, is_valid: true, overall_score: null,
                     summary: 'AI feedback could not be generated at this time. Please try again.',
-                    strengths: ['You completed the speaking exercise!'],
-                    tips: ['Keep practicing!'],
-                    encouragement: 'Great effort — keep speaking French!'
+                    strengths: ['Exercise completed.'],
+                    corrections: [],
+                    tips: ['Keep practicing.'],
                 });
             }
 
@@ -236,11 +252,11 @@ const FreeSpeakingPractice = () => {
             setFeedback({
                 type: 'free-speaking', ai_generated: false, is_valid: true, overall_score: null,
                 summary: 'Could not connect to the AI feedback server. Your speech was recorded successfully.',
-                strengths: ['You practiced speaking French — great job!'],
-                areas_for_improvement: ['Try submitting again when the server is available'],
+                strengths: ['Exercise completed.'],
+                areas_for_improvement: ['Try submitting again when the server is available.'],
                 fluency_assessment: 'Fluency analysis will be available once the server connection is restored.',
-                tips: ['Keep practicing regularly', 'Try speaking for longer durations'],
-                encouragement: 'Excellent effort! The server may be temporarily unavailable. Please try again soon. 💪'
+                corrections: [],
+                tips: ['Keep practicing regularly.', 'Try speaking for longer durations.'],
             });
         } finally {
             setIsSubmitting(false);
@@ -253,6 +269,7 @@ const FreeSpeakingPractice = () => {
         setFeedback(null);
         setRecordingTime(0);
         setTranscription('');
+        setExpandedCorrections({});
     };
 
     const renderScoreStars = (score) => {
@@ -265,8 +282,24 @@ const FreeSpeakingPractice = () => {
         return stars;
     };
 
+    const getErrorTypeConfig = (type) => ERROR_TYPE_CONFIG[type] || ERROR_TYPE_CONFIG.grammar;
+
+    const getSortedCorrections = (corrections) => {
+        if (!corrections) return [];
+        return [...corrections].sort((a, b) => {
+            const sa = SEVERITY_ORDER[a.severity] ?? 1;
+            const sb = SEVERITY_ORDER[b.severity] ?? 1;
+            return sa - sb;
+        });
+    };
+
+    const toggleCorrectionDetail = (index) => {
+        setExpandedCorrections(prev => ({ ...prev, [index]: !prev[index] }));
+    };
+
     const isInvalid = feedback && !feedback.is_valid;
     const hasScore = feedback && feedback.overall_score;
+    const sortedCorrections = getSortedCorrections(feedback?.corrections);
 
     // =================== SINGLE PAGE — RECORDING + INLINE FEEDBACK ===================
     return (
@@ -395,7 +428,7 @@ const FreeSpeakingPractice = () => {
                                 </div>
                             )}
 
-                            {/* Submit Button — only show when no feedback yet */}
+                            {/* Submit Button */}
                             {recordedBlob && !feedback && (
                                 <button
                                     className="fs-submit-btn"
@@ -428,8 +461,8 @@ const FreeSpeakingPractice = () => {
                                             ? <XCircle size={48} className="error-icon" />
                                             : <CheckCircle size={48} className="success-icon" />
                                         }
-                                        <h2>{isInvalid ? 'Please Try Again' : '🎯 Speech Analysis Complete!'}</h2>
-                                        <p>{isInvalid ? feedback.message : 'Here\'s your comprehensive AI-powered analysis'}</p>
+                                        <h2>{isInvalid ? 'Please Try Again' : 'Analysis Complete'}</h2>
+                                        <p>{isInvalid ? feedback.message : 'Review your corrections below'}</p>
                                     </div>
                                 </div>
 
@@ -465,48 +498,131 @@ const FreeSpeakingPractice = () => {
                                             </div>
                                         )}
 
-                                        {/* What you said */}
-                                        <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.25s' }}>
-                                            <div className="fs-transcription-result">
-                                                <h4><Mic size={18} /> What you said:</h4>
-                                                <p className="fs-transcribed-text">"{transcription}"</p>
-                                            </div>
-                                        </div>
-
                                         {/* Summary */}
                                         {feedback.summary && (
-                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.35s' }}>
+                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.25s' }}>
                                                 <div className="fs-summary-box">
                                                     <p>{feedback.summary}</p>
                                                 </div>
                                             </div>
                                         )}
 
-                                        {/* ✅ Strengths */}
+                                        {/* ===== SPLIT VIEW: Original vs Corrected ===== */}
+                                        {feedback.corrected_text && (
+                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.3s' }}>
+                                                <div className="text-comparison">
+                                                    <h4 className="comparison-title">
+                                                        <Eye size={18} /> Text Comparison
+                                                    </h4>
+                                                    <div className="comparison-grid">
+                                                        <div className="comparison-panel original">
+                                                            <div className="panel-label">
+                                                                <span className="label-dot original-dot"></span>
+                                                                What You Said
+                                                            </div>
+                                                            <div className="panel-text">{feedback.original_text || transcription}</div>
+                                                        </div>
+                                                        <div className="comparison-divider">
+                                                            <ArrowRight size={20} />
+                                                        </div>
+                                                        <div className="comparison-panel corrected">
+                                                            <div className="panel-label">
+                                                                <span className="label-dot corrected-dot"></span>
+                                                                Corrected Version
+                                                            </div>
+                                                            <div className="panel-text">{feedback.corrected_text}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* ===== CORRECTIONS WITH ERROR TYPES ===== */}
+                                        {sortedCorrections.length > 0 && (
+                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.4s' }}>
+                                                <div className="corrections-section">
+                                                    <h4 className="section-title">
+                                                        <AlertCircle size={18} /> Corrections
+                                                        <span className="correction-count">{sortedCorrections.length} {sortedCorrections.length === 1 ? 'issue' : 'issues'}</span>
+                                                    </h4>
+                                                    <div className="corrections-list">
+                                                        {sortedCorrections.map((c, i) => {
+                                                            const typeConfig = getErrorTypeConfig(c.type);
+                                                            const briefText = c.brief || c.explanation || '';
+                                                            const ruleText = c.rule || '';
+                                                            return (
+                                                                <div key={i} className={`correction-card severity-${c.severity || 'medium'}`}>
+                                                                    <div className="correction-card-header">
+                                                                        <span
+                                                                            className="error-type-badge"
+                                                                            style={{ color: typeConfig.color, background: typeConfig.bg }}
+                                                                        >
+                                                                            {typeConfig.label}
+                                                                        </span>
+                                                                        {c.severity && (
+                                                                            <span className={`severity-indicator severity-${c.severity}`}>
+                                                                                {c.severity}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="correction-row">
+                                                                        <span className="wrong">{c.original}</span>
+                                                                        <span className="arrow">→</span>
+                                                                        <span className="correct">{c.corrected}</span>
+                                                                    </div>
+                                                                    {briefText && (
+                                                                        <p className="correction-brief">{briefText}</p>
+                                                                    )}
+                                                                    {ruleText && (
+                                                                        <>
+                                                                            <button
+                                                                                className="detail-toggle"
+                                                                                onClick={() => toggleCorrectionDetail(i)}
+                                                                            >
+                                                                                {expandedCorrections[i] ? (
+                                                                                    <>Hide grammar rule <ChevronUp size={14} /></>
+                                                                                ) : (
+                                                                                    <>Show grammar rule <ChevronDown size={14} /></>
+                                                                                )}
+                                                                            </button>
+                                                                            {expandedCorrections[i] && (
+                                                                                <p className="correction-explanation-detail">{ruleText}</p>
+                                                                            )}
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Strengths */}
                                         {feedback.strengths?.length > 0 && (
-                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.45s' }}>
+                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.5s' }}>
                                                 <div className="fs-feedback-section positive">
-                                                    <h4><ThumbsUp size={18} /> ✅ What You Did Well</h4>
+                                                    <h4><ThumbsUp size={18} /> Strengths</h4>
                                                     <ul>{feedback.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul>
                                                 </div>
                                             </div>
                                         )}
 
-                                        {/* ❌ Areas of improvement */}
+                                        {/* Areas of improvement */}
                                         {feedback.areas_for_improvement?.length > 0 && (
-                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.55s' }}>
+                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.6s' }}>
                                                 <div className="fs-feedback-section improvement">
-                                                    <h4><AlertCircle size={18} /> ❌ Areas to Improve</h4>
+                                                    <h4><AlertCircle size={18} /> Areas to Improve</h4>
                                                     <ul>{feedback.areas_for_improvement.map((a, i) => <li key={i}>{a}</li>)}</ul>
                                                 </div>
                                             </div>
                                         )}
 
-                                        {/* 📚 Vocabulary */}
+                                        {/* Vocabulary */}
                                         {feedback.vocabulary_suggestions?.length > 0 && (
-                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.65s' }}>
+                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.7s' }}>
                                                 <div className="fs-feedback-section vocabulary">
-                                                    <h4><BookOpen size={18} /> 📚 Vocabulary Improvement</h4>
+                                                    <h4><BookOpen size={18} /> Vocabulary</h4>
                                                     <div className="fs-vocab-list">
                                                         {feedback.vocabulary_suggestions.map((v, i) => (
                                                             <div key={i} className="fs-vocab-item">
@@ -521,43 +637,19 @@ const FreeSpeakingPractice = () => {
                                             </div>
                                         )}
 
-                                        {/* 🗣 Fluency */}
+                                        {/* Fluency */}
                                         {feedback.fluency_assessment && (
-                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.75s' }}>
+                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.8s' }}>
                                                 <div className="fs-feedback-section fluency">
-                                                    <h4><Volume2 size={18} /> 🗣 Fluency Assessment</h4>
+                                                    <h4><Volume2 size={18} /> Fluency Assessment</h4>
                                                     <p>{feedback.fluency_assessment}</p>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* ✍ Grammar */}
-                                        {feedback.grammar_corrections?.length > 0 && (
-                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.85s' }}>
-                                                <div className="fs-feedback-section grammar">
-                                                    <h4><MessageCircle size={18} /> ✍ Grammar Corrections</h4>
-                                                    <div className="fs-grammar-list">
-                                                        {feedback.grammar_corrections.map((g, i) => (
-                                                            <div key={i} className="fs-grammar-item">
-                                                                <div className="grammar-error">
-                                                                    <span className="label">Error:</span>
-                                                                    <span className="text error">{g.original}</span>
-                                                                </div>
-                                                                <div className="grammar-correction">
-                                                                    <span className="label">Correct:</span>
-                                                                    <span className="text correct">{g.corrected}</span>
-                                                                </div>
-                                                                <div className="grammar-explanation">{g.explanation}</div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
                                                 </div>
                                             </div>
                                         )}
 
                                         {/* Pronunciation + Tips */}
                                         {(feedback.pronunciation_notes?.length > 0 || feedback.tips?.length > 0) && (
-                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.95s' }}>
+                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '0.9s' }}>
                                                 {feedback.pronunciation_notes?.length > 0 && (
                                                     <div className="fs-feedback-section pronunciation">
                                                         <h4>🗣️ Pronunciation Notes</h4>
@@ -568,26 +660,17 @@ const FreeSpeakingPractice = () => {
                                                 )}
                                                 {feedback.tips?.length > 0 && (
                                                     <div className="fs-feedback-section tips" style={{ marginTop: feedback.pronunciation_notes?.length > 0 ? '1rem' : 0 }}>
-                                                        <h4><Lightbulb size={18} /> 💡 Tips for Improvement</h4>
+                                                        <h4><Lightbulb size={18} /> Tips</h4>
                                                         <ul>{feedback.tips.map((t, i) => <li key={i}>{t}</li>)}</ul>
                                                     </div>
                                                 )}
-                                            </div>
-                                        )}
-
-                                        {/* Encouragement */}
-                                        {feedback.encouragement && (
-                                            <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '1.05s' }}>
-                                                <div className="fs-encouragement">
-                                                    <p>💪 {feedback.encouragement}</p>
-                                                </div>
                                             </div>
                                         )}
                                     </>
                                 )}
 
                                 {/* Action Buttons */}
-                                <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '1.15s' }}>
+                                <div className="fs-feedback-card fs-animate-in" style={{ animationDelay: '1s' }}>
                                     <div className="fs-feedback-actions">
                                         <Link to="/dashboard" className="btn btn-primary">Dashboard</Link>
                                         <button onClick={resetPractice} className="btn btn-secondary">Practice Again</button>

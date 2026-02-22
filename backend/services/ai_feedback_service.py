@@ -96,7 +96,20 @@ Respond with ONLY JSON (no markdown):
             }
         
         try:
-            prompt = f"""You are an expert French tutor. Analyze this student's French writing.
+            prompt = f"""You are a neutral, professional French language tutor. Analyze this student's French writing and provide structured feedback.
+
+IMPORTANT RULES:
+- Do NOT use any names (no "Sanjay", "Sophie", etc.)
+- Do NOT add praise, encouragement, or motivational phrases
+- All explanations MUST be in English only (no French in explanations)
+- Be neutral, professional, and focused on learning
+- Keep all explanations SHORT — single sentences, not paragraphs
+- Prioritize errors: meaning/tense errors first, then grammar, then vocabulary, then punctuation
+- ALWAYS provide a fully corrected version of the entire text
+- Categorize each error by type: "grammar", "tense", "vocabulary", "punctuation", "structure", "agreement", "preposition", "pronoun"
+- For each correction, provide TWO explanation fields:
+  1. "brief": a SHORT one-line explanation shown by default (e.g. "pouvoir is irregular — use 'pouvez' with vous")
+  2. "rule": a longer grammar rule with example (e.g. "Pouvoir conjugation: je peux, tu peux, il peut, nous pouvons, vous pouvez, ils peuvent. Example: Vous pouvez parler français.")
 
 Prompt: {prompt_title}
 Description: {prompt_description}
@@ -104,17 +117,34 @@ Level: {difficulty_level}
 
 Student wrote: "{user_response}"
 
-Provide specific, personalized feedback. Return ONLY JSON (no markdown):
+Return ONLY valid JSON (no markdown code blocks):
 {{
     "overall_score": 1-10,
-    "summary": "2-3 sentences about their specific writing",
-    "strengths": ["specific strength with quote", "another strength"],
-    "areas_for_improvement": ["specific issue with quote", "another issue"],
-    "grammar_corrections": [{{"original": "error from text", "corrected": "fixed version", "explanation": "why"}}],
-    "vocabulary_suggestions": [{{"used": "word they used", "alternative": "better word", "explanation": "why better"}}],
-    "tips": ["tip 1", "tip 2"],
-    "encouragement": "personalized message"
-}}"""
+    "corrected_text": "The fully corrected version of the student's entire text",
+    "summary": "1-2 SHORT sentences — neutral assessment only, no praise, no names",
+    "strengths": ["max 2 brief strengths"],
+    "areas_for_improvement": ["specific issue (brief, 1 line max)"],
+    "corrections": [
+        {{
+            "type": "grammar|tense|vocabulary|punctuation|structure|agreement|preposition|pronoun",
+            "original": "exact error from their text",
+            "corrected": "fixed version",
+            "brief": "Short 1-line explanation in English (always visible)",
+            "rule": "Longer grammar rule with conjugation/pattern and one example sentence. In English.",
+            "severity": "high|medium|low"
+        }}
+    ],
+    "vocabulary_suggestions": [
+        {{
+            "used": "word they used",
+            "alternative": "better word",
+            "explanation": "Brief reason in English (1 line)"
+        }}
+    ],
+    "tips": ["actionable tip in English (1 line)"]
+}}
+
+Sort corrections by severity: high (meaning/tense) first, then medium (grammar/agreement), then low (punctuation)."""
 
             response = self.model.generate_content(prompt)
             text = response.text.strip()
@@ -128,6 +158,7 @@ Provide specific, personalized feedback. Return ONLY JSON (no markdown):
             data['type'] = 'writing'
             data['ai_generated'] = True
             data['is_valid'] = True
+            data['original_text'] = user_response
             print("✅ Generated writing feedback")
             return data
             
@@ -161,7 +192,20 @@ Provide specific, personalized feedback. Return ONLY JSON (no markdown):
             }
         
         try:
-            prompt = f"""You are an expert French tutor analyzing a student's spoken French (transcription provided).
+            prompt = f"""You are a neutral, professional French language tutor analyzing a student's spoken French (transcription provided).
+
+IMPORTANT RULES:
+- Do NOT use any names
+- Do NOT add praise, encouragement, or motivational phrases
+- All explanations MUST be in English only
+- Be neutral, professional, and focused on learning
+- Keep all explanations SHORT — single sentences, not paragraphs
+- Prioritize: meaning/tense errors > grammar > vocabulary > punctuation
+- ALWAYS provide a corrected version of what they said
+- Categorize each error by type
+- For each correction, provide TWO explanation fields:
+  1. "brief": a SHORT one-line explanation shown by default
+  2. "rule": a longer grammar rule with example
 
 Prompt: {prompt_title}
 Description: {prompt_description}
@@ -170,18 +214,29 @@ Duration: {duration} seconds
 
 Student said: "{transcription}"
 
-Provide specific feedback. Return ONLY JSON:
+Return ONLY valid JSON (no markdown code blocks):
 {{
     "overall_score": 1-10,
-    "summary": "2-3 sentences about their speech",
-    "strengths": ["strength 1", "strength 2"],
-    "areas_for_improvement": ["area 1", "area 2"],
-    "pronunciation_notes": [{{"word": "difficult word", "suggestion": "how to say it"}}],
-    "fluency_assessment": "assessment of flow",
-    "grammar_notes": ["grammar point from their speech"],
-    "tips": ["tip 1", "tip 2"],
-    "encouragement": "personalized message"
-}}"""
+    "corrected_text": "The fully corrected version of what they said",
+    "summary": "1-2 SHORT sentences — neutral assessment only, no praise, no names",
+    "strengths": ["max 2 brief strengths"],
+    "areas_for_improvement": ["specific area (brief)"],
+    "corrections": [
+        {{
+            "type": "grammar|tense|vocabulary|punctuation|structure|agreement|preposition|pronoun",
+            "original": "exact error from speech",
+            "corrected": "fixed version",
+            "brief": "Short 1-line explanation in English (always visible)",
+            "rule": "Longer grammar rule with example. In English.",
+            "severity": "high|medium|low"
+        }}
+    ],
+    "pronunciation_notes": [{{"word": "word", "suggestion": "how to say it"}}],
+    "fluency_assessment": "1-2 sentences about flow and naturalness",
+    "tips": ["tip in English (1 line)"]
+}}
+
+Sort corrections by severity: high first."""
 
             response = self.model.generate_content(prompt)
             text = response.text.strip()
@@ -195,6 +250,7 @@ Provide specific feedback. Return ONLY JSON:
             data['type'] = 'speaking'
             data['ai_generated'] = True
             data['is_valid'] = True
+            data['original_text'] = transcription
             print("✅ Generated speaking feedback")
             return data
             
@@ -228,33 +284,55 @@ Provide specific feedback. Return ONLY JSON:
             }
         
         try:
-            prompt = f"""You are an expert French language tutor. A student has spoken freely in French (no specific topic/prompt was given). Analyze their speech thoroughly.
+            prompt = f"""You are a neutral, professional French language tutor. A student spoke freely in French (no specific topic). Analyze their speech.
+
+IMPORTANT RULES:
+- Do NOT use any names
+- Do NOT add praise, encouragement, or motivational phrases
+- All explanations MUST be in English only
+- Be neutral, professional, and focused on learning
+- Keep all explanations SHORT — single sentences, not paragraphs
+- Prioritize: meaning/tense errors > grammar > vocabulary > punctuation
+- ALWAYS provide a corrected version of what they said
+- Categorize each error by type
+- For each correction, provide TWO explanation fields:
+  1. "brief": a SHORT one-line explanation shown by default
+  2. "rule": a longer grammar rule with example
 
 Duration: {duration} seconds
 
 Student said: "{transcription}"
 
-Analyze their speech comprehensively and provide detailed, specific feedback. Return ONLY valid JSON (no markdown code blocks):
+Return ONLY valid JSON (no markdown code blocks):
 {{
     "overall_score": 1-10,
-    "summary": "2-3 sentences overall assessment of their French speaking ability based on this sample",
-    "strengths": ["specific positive point with quote from their speech", "another strength"],
-    "areas_for_improvement": ["specific area needing work with example from speech", "another area"],
+    "corrected_text": "The fully corrected version of what they said",
+    "summary": "1-2 SHORT sentences — neutral assessment only, no praise, no names",
+    "strengths": ["max 2 brief strengths"],
+    "areas_for_improvement": ["specific area with example (brief)"],
+    "corrections": [
+        {{
+            "type": "grammar|tense|vocabulary|punctuation|structure|agreement|preposition|pronoun",
+            "original": "exact error from speech",
+            "corrected": "fixed version",
+            "brief": "Short 1-line explanation in English (always visible)",
+            "rule": "Longer grammar rule with example. In English.",
+            "severity": "high|medium|low"
+        }}
+    ],
     "vocabulary_suggestions": [
-        {{"used": "word they used", "alternative": "better/more natural word", "explanation": "why the alternative is better"}},
-        {{"used": "another word", "alternative": "better option", "explanation": "context"}}
+        {{
+            "used": "word used",
+            "alternative": "better word",
+            "explanation": "brief reason in English"
+        }}
     ],
-    "fluency_assessment": "detailed assessment of their speaking flow, naturalness, and fluency level",
-    "grammar_corrections": [
-        {{"original": "exact error from their speech", "corrected": "correct version", "explanation": "grammar rule explanation"}},
-        {{"original": "another error", "corrected": "fixed version", "explanation": "why"}}
-    ],
-    "pronunciation_notes": [
-        {{"word": "word that may be mispronounced", "suggestion": "correct pronunciation guide"}}
-    ],
-    "tips": ["specific actionable tip to improve", "another tip"],
-    "encouragement": "personalized encouraging message based on their level"
-}}"""
+    "fluency_assessment": "1-2 sentences about flow and naturalness",
+    "pronunciation_notes": [{{"word": "word", "suggestion": "how to say it"}}],
+    "tips": ["actionable tip in English (1 line)"]
+}}
+
+Sort corrections by severity: high first."""
 
             response = self.model.generate_content(prompt)
             text = response.text.strip()
@@ -268,6 +346,7 @@ Analyze their speech comprehensively and provide detailed, specific feedback. Re
             data['type'] = 'free-speaking'
             data['ai_generated'] = True
             data['is_valid'] = True
+            data['original_text'] = transcription
             print("✅ Generated free speaking feedback")
             return data
             
@@ -281,11 +360,12 @@ Analyze their speech comprehensively and provide detailed, specific feedback. Re
             "ai_generated": False,
             "is_valid": True,
             "overall_score": None,
+            "corrected_text": "",
             "summary": "AI feedback temporarily unavailable.",
-            "strengths": ["You completed the exercise"],
+            "strengths": ["Exercise completed"],
             "areas_for_improvement": ["Try again later for AI feedback"],
+            "corrections": [],
             "tips": ["Keep practicing"],
-            "encouragement": "Thank you for practicing!"
         }
 
 ai_feedback_service = AIFeedbackService()

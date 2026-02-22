@@ -1,8 +1,8 @@
 /* ============ FREE SPEAKING PRACTICE ============ */
 
 .free-speaking-page {
-    padding: 2rem;
-    padding-top: 6rem;
+    padding: 2.5rem;
+    padding-top: 6.5rem;
     min-height: 100vh;
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
     overflow-x: hidden;
@@ -10,7 +10,7 @@
 }
 
 .fs-container {
-    max-width: 900px;
+    max-width: 880px;
     margin: 0 auto;
 }
 
@@ -164,11 +164,11 @@
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 2rem;
+    border-radius: 22px;
+    padding: 2.25rem;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.75rem;
 }
 
 .fs-browser-warning {
@@ -501,14 +501,16 @@
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 1.75rem;
+    border-radius: 22px;
+    padding: 2.25rem;
     width: 100%;
 }
 
 .fs-feedback-header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .fs-feedback-header .success-icon {
@@ -535,7 +537,7 @@
 /* Score Box */
 .fs-score-box {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 2.25rem;
 }
 
 .fs-score-ring {
@@ -576,9 +578,9 @@
 .fs-transcription-result {
     background: rgba(16, 185, 129, 0.08);
     border: 1px solid rgba(16, 185, 129, 0.2);
-    border-radius: 14px;
-    padding: 1.25rem;
-    margin-bottom: 1.5rem;
+    border-radius: 16px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 2rem;
 }
 
 .fs-transcription-result h4 {
@@ -593,38 +595,40 @@
 .fs-transcribed-text {
     color: #cbd5e1;
     font-size: 1rem;
-    line-height: 1.6;
+    line-height: 1.7;
     font-style: italic;
     margin: 0;
+    max-width: 62ch;
 }
 
 /* Summary */
 .fs-summary-box {
     background: rgba(255, 255, 255, 0.03);
-    border-radius: 12px;
-    padding: 1.25rem;
-    margin-bottom: 1.5rem;
+    border-radius: 14px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 2rem;
 }
 
 .fs-summary-box p {
     color: #cbd5e1;
-    line-height: 1.6;
+    line-height: 1.7;
     margin: 0;
     font-size: 0.95rem;
+    max-width: 62ch;
 }
 
 /* Feedback Sections */
 .fs-feedback-section {
-    border-radius: 14px;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
+    border-radius: 16px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.25rem;
 }
 
 .fs-feedback-section h4 {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin: 0 0 0.75rem 0;
+    margin: 0 0 1rem 0;
     font-size: 1rem;
     font-weight: 600;
 }
@@ -636,12 +640,13 @@
 }
 
 .fs-feedback-section ul li {
-    padding: 0.4rem 0;
+    padding: 0.5rem 0;
     padding-left: 1.25rem;
     position: relative;
     color: #cbd5e1;
     font-size: 0.9rem;
-    line-height: 1.5;
+    line-height: 1.6;
+    max-width: 62ch;
 }
 
 .fs-feedback-section ul li::before {
@@ -653,40 +658,40 @@
 
 /* Positive Section */
 .fs-feedback-section.positive {
-    background: rgba(16, 185, 129, 0.08);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.06);
+    border: 1px solid rgba(16, 185, 129, 0.15);
 }
 
 .fs-feedback-section.positive h4 {
-    color: #34d399;
+    color: #6ee7b7;
 }
 
 .fs-feedback-section.positive ul li::before {
-    color: #34d399;
+    color: #6ee7b7;
 }
 
 /* Improvement Section */
 .fs-feedback-section.improvement {
-    background: rgba(239, 68, 68, 0.08);
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    background: rgba(251, 191, 36, 0.06);
+    border: 1px solid rgba(251, 191, 36, 0.15);
 }
 
 .fs-feedback-section.improvement h4 {
-    color: #f87171;
+    color: #fbbf24;
 }
 
 .fs-feedback-section.improvement ul li::before {
-    color: #f87171;
+    color: #fbbf24;
 }
 
 /* Vocabulary Section */
 .fs-feedback-section.vocabulary {
-    background: rgba(99, 102, 241, 0.08);
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    background: rgba(99, 102, 241, 0.06);
+    border: 1px solid rgba(99, 102, 241, 0.15);
 }
 
 .fs-feedback-section.vocabulary h4 {
-    color: #818cf8;
+    color: #a5b4fc;
 }
 
 .fs-vocab-list {
@@ -706,7 +711,7 @@
 }
 
 .fs-vocab-item .used-word {
-    color: #f87171;
+    color: #fca5a5;
     font-weight: 600;
     text-decoration: line-through;
     font-size: 0.9rem;
@@ -718,7 +723,7 @@
 }
 
 .fs-vocab-item .better-word {
-    color: #34d399;
+    color: #6ee7b7;
     font-weight: 600;
     font-size: 0.9rem;
 }
@@ -733,12 +738,12 @@
 
 /* Fluency Section */
 .fs-feedback-section.fluency {
-    background: rgba(245, 158, 11, 0.08);
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    background: rgba(217, 119, 6, 0.06);
+    border: 1px solid rgba(217, 119, 6, 0.15);
 }
 
 .fs-feedback-section.fluency h4 {
-    color: #fbbf24;
+    color: #fcd34d;
 }
 
 .fs-feedback-section.fluency p {
@@ -750,12 +755,12 @@
 
 /* Grammar Section */
 .fs-feedback-section.grammar {
-    background: rgba(236, 72, 153, 0.08);
-    border: 1px solid rgba(236, 72, 153, 0.2);
+    background: rgba(244, 114, 182, 0.06);
+    border: 1px solid rgba(244, 114, 182, 0.12);
 }
 
 .fs-feedback-section.grammar h4 {
-    color: #f472b6;
+    color: #f9a8d4;
 }
 
 .fs-grammar-list {
@@ -788,11 +793,11 @@
 }
 
 .grammar-error .label {
-    color: #f87171;
+    color: #fca5a5;
 }
 
 .grammar-correction .label {
-    color: #34d399;
+    color: #6ee7b7;
 }
 
 .grammar-error .text.error {
@@ -802,7 +807,7 @@
 }
 
 .grammar-correction .text.correct {
-    color: #6ee7b7;
+    color: #86efac;
     font-weight: 600;
     font-size: 0.9rem;
 }
@@ -818,12 +823,12 @@
 
 /* Pronunciation & Tips */
 .fs-feedback-section.pronunciation {
-    background: rgba(6, 182, 212, 0.08);
-    border: 1px solid rgba(6, 182, 212, 0.2);
+    background: rgba(6, 182, 212, 0.06);
+    border: 1px solid rgba(6, 182, 212, 0.12);
 }
 
 .fs-feedback-section.pronunciation h4 {
-    color: #22d3ee;
+    color: #67e8f9;
 }
 
 .fs-tip-item {
@@ -834,20 +839,20 @@
 }
 
 .fs-tip-item strong {
-    color: #22d3ee;
+    color: #67e8f9;
 }
 
 .fs-feedback-section.tips {
-    background: rgba(168, 85, 247, 0.08);
-    border: 1px solid rgba(168, 85, 247, 0.2);
+    background: rgba(168, 85, 247, 0.06);
+    border: 1px solid rgba(168, 85, 247, 0.12);
 }
 
 .fs-feedback-section.tips h4 {
-    color: #c084fc;
+    color: #d8b4fe;
 }
 
 .fs-feedback-section.tips ul li::before {
-    color: #c084fc;
+    color: #d8b4fe;
 }
 
 /* Expand Button */
@@ -883,8 +888,8 @@
 
 /* Encouragement */
 .fs-encouragement {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.1) 100%);
-    border: 1px solid rgba(16, 185, 129, 0.25);
+    background: rgba(16, 185, 129, 0.06);
+    border: 1px solid rgba(16, 185, 129, 0.15);
     border-radius: 14px;
     padding: 1.25rem;
     text-align: center;
@@ -892,7 +897,7 @@
 }
 
 .fs-encouragement p {
-    color: #34d399;
+    color: #6ee7b7;
     font-size: 1rem;
     font-weight: 500;
     margin: 0;
@@ -902,9 +907,11 @@
 /* Action Buttons */
 .fs-feedback-actions {
     display: flex;
-    gap: 1rem;
+    gap: 1.25rem;
     justify-content: center;
-    margin-top: 2rem;
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .fs-feedback-actions .btn {
@@ -993,6 +1000,354 @@
 
     .fs-feedback-actions {
         flex-direction: column;
+    }
+
+    .fs-feedback-actions .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* ============ DARK-THEMED TEXT COMPARISON ============ */
+.fs-feedback-card .text-comparison {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.03);
+    margin-bottom: 2rem;
+}
+
+.fs-feedback-card .comparison-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    padding: 1rem 1.25rem;
+    margin: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fs-feedback-card .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: stretch;
+}
+
+.fs-feedback-card .comparison-panel {
+    padding: 1.5rem 1.75rem;
+}
+
+.fs-feedback-card .comparison-panel.original {
+    background: rgba(239, 68, 68, 0.06);
+}
+
+.fs-feedback-card .comparison-panel.corrected {
+    background: rgba(16, 185, 129, 0.06);
+}
+
+.fs-feedback-card .panel-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+    color: #94a3b8;
+}
+
+.fs-feedback-card .label-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.fs-feedback-card .original-dot {
+    background: #ef4444;
+}
+
+.fs-feedback-card .corrected-dot {
+    background: #10b981;
+}
+
+.fs-feedback-card .panel-text {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: #cbd5e1;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-width: 42ch;
+}
+
+.fs-feedback-card .comparison-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.25rem;
+    color: #64748b;
+    background: rgba(255, 255, 255, 0.03);
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 768px) {
+    .fs-feedback-card .comparison-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fs-feedback-card .comparison-divider {
+        padding: 0.5rem;
+        border-left: none;
+        border-right: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+}
+
+/* ============ DARK-THEMED CORRECTIONS ============ */
+.fs-feedback-card .corrections-section {
+    margin-bottom: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.fs-feedback-card .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0 0 1rem 0;
+}
+
+.fs-feedback-card .correction-count {
+    margin-left: auto;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0.2rem 0.6rem;
+    border-radius: 10px;
+}
+
+.fs-feedback-card .corrections-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.fs-feedback-card .correction-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    transition: background 0.2s;
+}
+
+.fs-feedback-card .correction-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.fs-feedback-card .correction-card.severity-high {
+    border-left: 4px solid #fb7185;
+}
+
+.fs-feedback-card .correction-card.severity-medium {
+    border-left: 4px solid #fbbf24;
+}
+
+.fs-feedback-card .correction-card.severity-low {
+    border-left: 4px solid #94a3b8;
+}
+
+.fs-feedback-card .correction-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.fs-feedback-card .error-type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.fs-feedback-card .severity-indicator {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    margin-left: auto;
+}
+
+.fs-feedback-card .severity-indicator.severity-high {
+    color: #fda4af;
+    background: rgba(251, 113, 133, 0.15);
+}
+
+.fs-feedback-card .severity-indicator.severity-medium {
+    color: #fde68a;
+    background: rgba(251, 191, 36, 0.15);
+}
+
+.fs-feedback-card .severity-indicator.severity-low {
+    color: #cbd5e1;
+    background: rgba(148, 163, 184, 0.15);
+}
+
+.fs-feedback-card .correction-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.fs-feedback-card .correction-row .wrong {
+    color: #fca5a5;
+    text-decoration: line-through;
+    font-weight: 500;
+}
+
+.fs-feedback-card .correction-row .arrow {
+    color: #64748b;
+}
+
+.fs-feedback-card .correction-row .correct {
+    color: #86efac;
+    font-weight: 600;
+}
+
+.fs-feedback-card .detail-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: none;
+    color: #6ee7b7;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.4rem 0;
+    margin-top: 0.5rem;
+    transition: color 0.2s;
+}
+
+.fs-feedback-card .detail-toggle:hover {
+    color: #6ee7b7;
+    text-decoration: underline;
+}
+
+.fs-feedback-card .correction-explanation-detail {
+    margin: 0.75rem 0 0 0;
+    padding: 1rem 1.125rem;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    font-size: 0.875rem;
+    color: #94a3b8;
+    line-height: 1.7;
+    border-left: 3px solid #34d399;
+    animation: fadeSlideIn 0.2s ease-out;
+    max-width: 58ch;
+}
+
+.fs-feedback-card .correction-brief {
+    margin: 0.5rem 0 0 0;
+    padding: 0;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    line-height: 1.5;
+    max-width: 58ch;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============ MOBILE: FreeSpeaking Improvements ============ */
+@media (max-width: 480px) {
+    .free-speaking-page {
+        padding: 0.625rem;
+        padding-top: 4.5rem;
+    }
+
+    .fs-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .fs-feedback-card {
+        padding: 1.25rem;
+        border-radius: 16px;
+    }
+
+    .fs-feedback-header {
+        margin-bottom: 1.75rem;
+        padding-bottom: 1rem;
+    }
+
+    .fs-recorder {
+        padding: 1.25rem;
+        min-height: 250px;
+    }
+
+    .fs-btn-inner {
+        width: 68px;
+        height: 68px;
+    }
+
+    .fs-timer span {
+        font-size: 1.75rem;
+    }
+
+    .fs-score-ring {
+        width: 100px;
+        height: 100px;
+    }
+
+    .fs-score-value {
+        font-size: 1.75rem;
+    }
+
+    .fs-feedback-card .panel-text {
+        max-width: none;
+    }
+
+    .fs-feedback-card .correction-explanation-detail {
+        max-width: none;
+    }
+
+    .fs-summary-box p,
+    .fs-transcribed-text,
+    .fs-feedback-section ul li {
+        max-width: none;
+    }
+
+    .fs-feedback-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1.75rem;
+        padding-top: 1.5rem;
     }
 
     .fs-feedback-actions .btn {

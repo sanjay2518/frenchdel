@@ -3,13 +3,27 @@ import { Link } from 'react-router-dom';
 import { useUserData } from '../context/UserDataContext';
 import { useAuth } from '../context/AuthContext';
 import {
-    Mic, MicOff, Play, Pause, Upload,
+    Mic, MicOff, Play, Pause,
     Send, ArrowLeft, Clock, CheckCircle,
     Trash2, Loader, Star, ThumbsUp,
-    AlertCircle, Lightbulb, ChevronDown, ChevronUp, XCircle
+    AlertCircle, Lightbulb, ChevronDown, ChevronUp, XCircle,
+    Eye, ArrowRight
 } from 'lucide-react';
 import API_URL from '../config/api';
 import './Practice.css';
+
+const ERROR_TYPE_CONFIG = {
+    tense: { label: 'Tense', color: '#9f1239', bg: '#fff1f2' },
+    grammar: { label: 'Grammar', color: '#92400e', bg: '#fffbeb' },
+    agreement: { label: 'Agreement', color: '#6d28d9', bg: '#f5f3ff' },
+    structure: { label: 'Structure', color: '#1e40af', bg: '#eff6ff' },
+    pronoun: { label: 'Pronoun', color: '#9d174d', bg: '#fdf2f8' },
+    preposition: { label: 'Preposition', color: '#155e75', bg: '#ecfeff' },
+    vocabulary: { label: 'Vocabulary', color: '#5b21b6', bg: '#f5f3ff' },
+    punctuation: { label: 'Punctuation', color: '#64748b', bg: '#f8fafc' },
+};
+
+const SEVERITY_ORDER = { high: 0, medium: 1, low: 2 };
 
 const SpeakingPractice = () => {
     const { addSubmission } = useUserData();
@@ -26,6 +40,7 @@ const SpeakingPractice = () => {
     const [loading, setLoading] = useState(true);
     const [feedback, setFeedback] = useState(null);
     const [showDetailedFeedback, setShowDetailedFeedback] = useState(false);
+    const [expandedCorrections, setExpandedCorrections] = useState({});
 
     // Real-time speech transcription
     const [transcription, setTranscription] = useState('');
@@ -47,21 +62,16 @@ const SpeakingPractice = () => {
             recognitionRef.current = new SpeechRecognition();
             recognitionRef.current.continuous = true;
             recognitionRef.current.interimResults = true;
-            recognitionRef.current.lang = 'fr-FR'; // French language
+            recognitionRef.current.lang = 'fr-FR';
 
             recognitionRef.current.onresult = (event) => {
                 let finalTranscript = '';
-                let interimTranscript = '';
-
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
                         finalTranscript += transcript + ' ';
-                    } else {
-                        interimTranscript += transcript;
                     }
                 }
-
                 if (finalTranscript) {
                     setTranscription(prev => prev + finalTranscript);
                 }
@@ -75,23 +85,14 @@ const SpeakingPractice = () => {
             };
 
             recognitionRef.current.onend = () => {
-                // Restart if still recording
                 if (isRecording && recognitionRef.current) {
-                    try {
-                        recognitionRef.current.start();
-                    } catch (e) {
-                        console.log('Recognition already started');
-                    }
+                    try { recognitionRef.current.start(); } catch (e) { /* already running */ }
                 }
             };
-        } else {
-            console.log('Speech recognition not supported');
         }
 
         return () => {
-            if (recognitionRef.current) {
-                recognitionRef.current.stop();
-            }
+            if (recognitionRef.current) recognitionRef.current.stop();
         };
     }, [isRecording]);
 
@@ -120,9 +121,7 @@ const SpeakingPractice = () => {
 
     const startRecording = async () => {
         try {
-            // Clear previous transcription
             setTranscription('');
-
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorderRef.current = new MediaRecorder(stream);
             audioChunksRef.current = [];
@@ -139,7 +138,6 @@ const SpeakingPractice = () => {
             setRecordingTime(0);
             timerRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
 
-            // Start speech recognition
             if (recognitionRef.current && speechSupported) {
                 try {
                     recognitionRef.current.start();
@@ -160,11 +158,7 @@ const SpeakingPractice = () => {
             setIsRecording(false);
             setIsListening(false);
             if (timerRef.current) clearInterval(timerRef.current);
-
-            // Stop speech recognition
-            if (recognitionRef.current) {
-                recognitionRef.current.stop();
-            }
+            if (recognitionRef.current) recognitionRef.current.stop();
         }
     };
 
@@ -186,7 +180,6 @@ const SpeakingPractice = () => {
 
     const handleSubmit = async () => {
         if (!recordedBlob || !selectedPrompt) return;
-
         if (!transcription.trim()) {
             alert('No speech was detected. Please speak in French while recording.');
             return;
@@ -206,7 +199,7 @@ const SpeakingPractice = () => {
                     difficulty: selectedPrompt.difficulty,
                     userId: user?.id,
                     promptId: selectedPrompt.id,
-                    transcription: transcription // Automatic transcription
+                    transcription: transcription
                 })
             });
 
@@ -239,6 +232,11 @@ const SpeakingPractice = () => {
         setShowDetailedFeedback(false);
         setRecordingTime(0);
         setTranscription('');
+        setExpandedCorrections({});
+    };
+
+    const toggleCorrectionDetail = (index) => {
+        setExpandedCorrections(prev => ({ ...prev, [index]: !prev[index] }));
     };
 
     const renderScoreStars = (score) => {
@@ -251,19 +249,31 @@ const SpeakingPractice = () => {
         return stars;
     };
 
+    const getErrorTypeConfig = (type) => ERROR_TYPE_CONFIG[type] || ERROR_TYPE_CONFIG.grammar;
+
+    const getSortedCorrections = (corrections) => {
+        if (!corrections) return [];
+        return [...corrections].sort((a, b) => {
+            const sa = SEVERITY_ORDER[a.severity] ?? 1;
+            const sb = SEVERITY_ORDER[b.severity] ?? 1;
+            return sa - sb;
+        });
+    };
+
     // Feedback Screen
     if (submitted) {
         const isInvalid = feedback && !feedback.is_valid;
         const hasScore = feedback && feedback.overall_score;
+        const sortedCorrections = getSortedCorrections(feedback?.corrections);
 
         return (
             <div className="practice-page">
                 <div className="feedback-page">
-                    <div className="feedback-card">
+                    <div className="feedback-card feedback-card-wide">
                         <div className="feedback-card-header">
                             {isInvalid ? <XCircle size={48} className="error-icon" /> : <CheckCircle size={48} className="success-icon" />}
-                            <h2>{isInvalid ? 'Please Try Again' : 'Practice Complete!'}</h2>
-                            <p>{isInvalid ? feedback.message : 'Here\'s your AI-powered feedback'}</p>
+                            <h2>{isInvalid ? 'Please Try Again' : 'Analysis Complete'}</h2>
+                            <p>{isInvalid ? feedback.message : 'Review your corrections below'}</p>
                         </div>
 
                         {!isInvalid && feedback && (
@@ -275,16 +285,99 @@ const SpeakingPractice = () => {
                                     </div>
                                 )}
 
-                                {/* Show what was transcribed */}
-                                <div className="transcription-result">
-                                    <h4>🎤 What you said:</h4>
-                                    <p className="transcribed-text">"{transcription}"</p>
-                                </div>
-
+                                {/* Summary */}
                                 <div className="feedback-summary-box">
                                     <p>{feedback.summary}</p>
                                 </div>
 
+                                {/* ===== SPLIT VIEW: Original vs Corrected ===== */}
+                                {feedback.corrected_text && (
+                                    <div className="text-comparison">
+                                        <h4 className="comparison-title">
+                                            <Eye size={18} /> Text Comparison
+                                        </h4>
+                                        <div className="comparison-grid">
+                                            <div className="comparison-panel original">
+                                                <div className="panel-label">
+                                                    <span className="label-dot original-dot"></span>
+                                                    What You Said
+                                                </div>
+                                                <div className="panel-text">{feedback.original_text || transcription}</div>
+                                            </div>
+                                            <div className="comparison-divider">
+                                                <ArrowRight size={20} />
+                                            </div>
+                                            <div className="comparison-panel corrected">
+                                                <div className="panel-label">
+                                                    <span className="label-dot corrected-dot"></span>
+                                                    Corrected Version
+                                                </div>
+                                                <div className="panel-text">{feedback.corrected_text}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* ===== CORRECTIONS WITH ERROR TYPES ===== */}
+                                {sortedCorrections.length > 0 && (
+                                    <div className="corrections-section">
+                                        <h4 className="section-title">
+                                            <AlertCircle size={18} /> Corrections
+                                            <span className="correction-count">{sortedCorrections.length} {sortedCorrections.length === 1 ? 'issue' : 'issues'}</span>
+                                        </h4>
+                                        <div className="corrections-list">
+                                            {sortedCorrections.map((c, i) => {
+                                                const typeConfig = getErrorTypeConfig(c.type);
+                                                const briefText = c.brief || c.explanation || '';
+                                                const ruleText = c.rule || '';
+                                                return (
+                                                    <div key={i} className={`correction-card severity-${c.severity || 'medium'}`}>
+                                                        <div className="correction-card-header">
+                                                            <span
+                                                                className="error-type-badge"
+                                                                style={{ color: typeConfig.color, background: typeConfig.bg }}
+                                                            >
+                                                                {typeConfig.label}
+                                                            </span>
+                                                            {c.severity && (
+                                                                <span className={`severity-indicator severity-${c.severity}`}>
+                                                                    {c.severity}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="correction-row">
+                                                            <span className="wrong">{c.original}</span>
+                                                            <span className="arrow">→</span>
+                                                            <span className="correct">{c.corrected}</span>
+                                                        </div>
+                                                        {briefText && (
+                                                            <p className="correction-brief">{briefText}</p>
+                                                        )}
+                                                        {ruleText && (
+                                                            <>
+                                                                <button
+                                                                    className="detail-toggle"
+                                                                    onClick={() => toggleCorrectionDetail(i)}
+                                                                >
+                                                                    {expandedCorrections[i] ? (
+                                                                        <>Hide grammar rule <ChevronUp size={14} /></>
+                                                                    ) : (
+                                                                        <>Show grammar rule <ChevronDown size={14} /></>
+                                                                    )}
+                                                                </button>
+                                                                {expandedCorrections[i] && (
+                                                                    <p className="correction-explanation-detail">{ruleText}</p>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Strengths */}
                                 {feedback.strengths?.length > 0 && (
                                     <div className="feedback-box strengths">
                                         <h4><ThumbsUp size={18} /> Strengths</h4>
@@ -292,6 +385,7 @@ const SpeakingPractice = () => {
                                     </div>
                                 )}
 
+                                {/* Areas to Improve */}
                                 {feedback.areas_for_improvement?.length > 0 && (
                                     <div className="feedback-box improvements">
                                         <h4><AlertCircle size={18} /> Areas to Improve</h4>
@@ -299,6 +393,7 @@ const SpeakingPractice = () => {
                                     </div>
                                 )}
 
+                                {/* Fluency */}
                                 {feedback.fluency_assessment && (
                                     <div className="feedback-box fluency">
                                         <h4>🎯 Fluency</h4>
@@ -306,10 +401,11 @@ const SpeakingPractice = () => {
                                     </div>
                                 )}
 
-                                {hasScore && (
+                                {/* Expandable Details */}
+                                {(feedback.pronunciation_notes?.length > 0 || feedback.tips?.length > 0) && (
                                     <>
                                         <button className="expand-btn" onClick={() => setShowDetailedFeedback(!showDetailedFeedback)}>
-                                            {showDetailedFeedback ? <>Hide Details <ChevronUp size={18} /></> : <>Show Details <ChevronDown size={18} /></>}
+                                            {showDetailedFeedback ? <>Hide Details <ChevronUp size={18} /></> : <>Pronunciation & Tips <ChevronDown size={18} /></>}
                                         </button>
 
                                         {showDetailedFeedback && (
@@ -322,12 +418,6 @@ const SpeakingPractice = () => {
                                                         ))}
                                                     </div>
                                                 )}
-                                                {feedback.grammar_notes?.length > 0 && (
-                                                    <div className="feedback-box grammar">
-                                                        <h4>📝 Grammar</h4>
-                                                        <ul>{feedback.grammar_notes.map((n, i) => <li key={i}>{n}</li>)}</ul>
-                                                    </div>
-                                                )}
                                                 {feedback.tips?.length > 0 && (
                                                     <div className="feedback-box tips">
                                                         <h4><Lightbulb size={18} /> Tips</h4>
@@ -337,12 +427,6 @@ const SpeakingPractice = () => {
                                             </div>
                                         )}
                                     </>
-                                )}
-
-                                {feedback.encouragement && (
-                                    <div className="encouragement-box">
-                                        <p>💪 {feedback.encouragement}</p>
-                                    </div>
                                 )}
                             </>
                         )}

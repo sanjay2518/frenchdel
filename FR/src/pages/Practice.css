@@ -1,6 +1,6 @@
 .practice-page {
-    padding: 2rem;
-    padding-top: 6rem;
+    padding: 2.5rem;
+    padding-top: 6.5rem;
     min-height: 100vh;
     background-color: var(--gray-50);
     overflow-x: hidden;
@@ -8,12 +8,12 @@
 }
 
 .practice-container {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
 .practice-header {
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
     text-align: center;
 }
 
@@ -116,8 +116,8 @@
 /* Practice Content Layout */
 .practice-content {
     display: grid;
-    grid-template-columns: 380px 1fr;
-    gap: 2rem;
+    grid-template-columns: 360px 1fr;
+    gap: 2.5rem;
     align-items: start;
 }
 
@@ -130,9 +130,9 @@
 /* Prompts Section */
 .prompts-section {
     background: white;
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border-radius: 18px;
+    padding: 1.75rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
     position: sticky;
     top: 100px;
 }
@@ -147,12 +147,12 @@
 .prompts-list {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.875rem;
 }
 
 .prompt-card {
-    padding: 1rem 1.25rem;
-    border-radius: 12px;
+    padding: 1.125rem 1.375rem;
+    border-radius: 14px;
     border: 2px solid var(--gray-200);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -231,9 +231,9 @@
 .recording-section,
 .writing-section {
     background: white;
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border-radius: 18px;
+    padding: 2.25rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
     display: flex;
     flex-direction: column;
 }
@@ -242,7 +242,7 @@
 .writing-section h3 {
     font-size: 1.25rem;
     color: var(--gray-900);
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 1.75rem 0;
     font-weight: 600;
 }
 
@@ -290,17 +290,18 @@
 
 .writing-textarea {
     width: 100%;
-    min-height: 250px;
+    min-height: 260px;
     flex: 1;
-    padding: 1.25rem;
-    border-radius: 12px;
+    padding: 1.5rem;
+    border-radius: 14px;
     border: 2px solid var(--gray-200);
     font-family: inherit;
-    font-size: 1rem;
-    line-height: 1.7;
+    font-size: 1.05rem;
+    line-height: 1.8;
     resize: vertical;
     transition: border-color 0.2s, box-shadow 0.2s;
     color: var(--gray-800);
+    max-width: 100%;
 }
 
 .writing-textarea:focus {
@@ -937,16 +938,16 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding: 2rem;
+    padding: 2.5rem;
     min-height: calc(100vh - 6rem);
 }
 
 .feedback-card {
     background: white;
     border-radius: 24px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-    padding: 2.5rem;
-    max-width: 600px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.10);
+    padding: 3rem;
+    max-width: 680px;
     width: 100%;
     box-sizing: border-box;
     overflow: visible;
@@ -954,7 +955,9 @@
 
 .feedback-card-header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--gray-100);
 }
 
 .feedback-card-header .success-icon {
@@ -984,16 +987,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-    border-radius: 16px;
-    margin-bottom: 1.5rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    border-radius: 18px;
+    margin-bottom: 2rem;
+    border: 1px solid #d1fae5;
 }
 
 .score-big {
     font-size: 4rem;
     font-weight: 800;
-    color: #059669;
+    color: #047857;
     line-height: 1;
 }
 
@@ -1005,15 +1009,15 @@
 .score-stars {
     display: flex;
     gap: 4px;
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
 }
 
 /* Summary Box */
 .feedback-summary-box {
     background: var(--gray-50);
-    padding: 1.25rem;
-    border-radius: 12px;
-    margin-bottom: 1.5rem;
+    padding: 1.5rem 1.75rem;
+    border-radius: 14px;
+    margin-bottom: 2rem;
     border-left: 4px solid var(--primary-500);
 }
 
@@ -1021,14 +1025,15 @@
     margin: 0;
     color: var(--gray-700);
     font-size: 1rem;
-    line-height: 1.6;
+    line-height: 1.7;
+    max-width: 62ch;
 }
 
 /* Feedback Boxes */
 .feedback-box {
-    padding: 1.25rem;
-    border-radius: 12px;
-    margin-bottom: 1rem;
+    padding: 1.5rem 1.75rem;
+    border-radius: 14px;
+    margin-bottom: 1.25rem;
 }
 
 .feedback-box h4 {
@@ -1037,7 +1042,7 @@
     gap: 0.5rem;
     font-size: 1rem;
     font-weight: 600;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
     margin-top: 0;
 }
 
@@ -1047,44 +1052,49 @@
 }
 
 .feedback-box ul li {
-    margin-bottom: 0.5rem;
-    line-height: 1.5;
+    margin-bottom: 0.6rem;
+    line-height: 1.6;
+    max-width: 62ch;
 }
 
 .feedback-box p {
     margin: 0;
-    line-height: 1.6;
+    line-height: 1.7;
+    max-width: 62ch;
 }
 
 /* Strengths */
 .feedback-box.strengths {
-    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    background: #f0fdf4;
+    border: 1px solid #d1fae5;
 }
 
 .feedback-box.strengths h4 {
-    color: #15803d;
+    color: #166534;
 }
 
 .feedback-box.strengths li {
-    color: #166534;
+    color: #14532d;
 }
 
 /* Improvements */
 .feedback-box.improvements {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    background: #fffbeb;
+    border: 1px solid #fef3c7;
 }
 
 .feedback-box.improvements h4 {
-    color: #b45309;
+    color: #92400e;
 }
 
 .feedback-box.improvements li {
-    color: #92400e;
+    color: #78350f;
 }
 
 /* Fluency */
 .feedback-box.fluency {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
 }
 
 .feedback-box.fluency h4 {
@@ -1097,29 +1107,30 @@
 
 /* Grammar */
 .feedback-box.grammar {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    background: #fff1f2;
+    border: 1px solid #ffe4e6;
 }
 
 .feedback-box.grammar h4 {
-    color: #b91c1c;
+    color: #9f1239;
 }
 
 .correction-item {
     background: rgba(255, 255, 255, 0.6);
-    padding: 0.75rem;
-    border-radius: 8px;
-    margin-bottom: 0.75rem;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 0.875rem;
 }
 
 .correction-row {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     flex-wrap: wrap;
 }
 
 .correction-row .wrong {
-    color: #dc2626;
+    color: #b91c1c;
     text-decoration: line-through;
     font-weight: 500;
 }
@@ -1129,23 +1140,26 @@
 }
 
 .correction-row .correct {
-    color: #059669;
+    color: #047857;
     font-weight: 600;
 }
 
 .correction-item .explanation {
-    margin: 0.5rem 0 0 0;
+    margin: 0.6rem 0 0 0;
     font-size: 0.875rem;
     color: var(--gray-600);
+    line-height: 1.6;
+    max-width: 62ch;
 }
 
 /* Vocabulary */
 .feedback-box.vocabulary {
-    background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+    background: #f5f3ff;
+    border: 1px solid #ede9fe;
 }
 
 .feedback-box.vocabulary h4 {
-    color: #7e22ce;
+    color: #5b21b6;
 }
 
 .vocab-item {
@@ -1166,7 +1180,7 @@
 }
 
 .vocab-item .new-word {
-    color: #7c3aed;
+    color: #5b21b6;
     font-weight: 600;
 }
 
@@ -1178,11 +1192,12 @@
 
 /* Pronunciation */
 .feedback-box.pronunciation {
-    background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+    background: #fdf2f8;
+    border: 1px solid #fce7f3;
 }
 
 .feedback-box.pronunciation h4 {
-    color: #be185d;
+    color: #9d174d;
 }
 
 .tip-item {
@@ -1190,25 +1205,26 @@
     padding: 0.75rem;
     border-radius: 8px;
     margin-bottom: 0.5rem;
-    color: #9d174d;
+    color: #831843;
     font-size: 0.95rem;
 }
 
 .tip-item strong {
-    color: #be185d;
+    color: #9d174d;
 }
 
 /* Tips */
 .feedback-box.tips {
-    background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%);
+    background: #ecfeff;
+    border: 1px solid #cffafe;
 }
 
 .feedback-box.tips h4 {
-    color: #0e7490;
+    color: #155e75;
 }
 
 .feedback-box.tips li {
-    color: #155e75;
+    color: #164e63;
 }
 
 /* Expand Button */
@@ -1218,15 +1234,15 @@
     justify-content: center;
     gap: 0.5rem;
     width: 100%;
-    padding: 0.875rem;
+    padding: 1rem;
     background: var(--gray-100);
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     color: var(--gray-600);
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
-    margin: 1rem 0;
+    margin: 1.5rem 0;
 }
 
 .expand-btn:hover {
@@ -1237,14 +1253,16 @@
 /* Detailed Section */
 .detailed-section {
     border-top: 1px solid var(--gray-200);
-    padding-top: 1rem;
+    padding-top: 1.5rem;
+    margin-top: 0.5rem;
 }
 
 /* Encouragement */
 .encouragement-box {
     text-align: center;
     padding: 1.25rem;
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    background: #fffbeb;
+    border: 1px solid #fef3c7;
     border-radius: 12px;
     margin-top: 1rem;
 }
@@ -1252,17 +1270,17 @@
 .encouragement-box p {
     margin: 0;
     font-weight: 600;
-    color: #92400e;
+    color: #78350f;
     font-size: 1rem;
 }
 
 /* Feedback Buttons */
 .feedback-buttons {
     display: flex;
-    gap: 1rem;
+    gap: 1.25rem;
     justify-content: center;
-    margin-top: 2rem;
-    padding-top: 1.5rem;
+    margin-top: 2.5rem;
+    padding-top: 2rem;
     border-top: 1px solid var(--gray-200);
 }
 
@@ -1710,5 +1728,411 @@
 
     .feedback-actions .btn {
         width: 100%;
+    }
+}
+
+/* ============ NEW: Wider Feedback Card ============ */
+.feedback-card-wide {
+    max-width: 860px;
+}
+
+/* ============ NEW: Text Comparison (Split View) ============ */
+.text-comparison {
+    margin-bottom: 2rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 18px;
+    overflow: hidden;
+    background: white;
+}
+
+.comparison-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    padding: 1rem 1.25rem;
+    margin: 0;
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: stretch;
+}
+
+.comparison-panel {
+    padding: 1.5rem 1.75rem;
+}
+
+.comparison-panel.original {
+    background: #fef2f2;
+}
+
+.comparison-panel.corrected {
+    background: #f0fdf4;
+}
+
+.panel-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+    color: var(--gray-600);
+}
+
+.label-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.original-dot {
+    background: #e11d48;
+}
+
+.corrected-dot {
+    background: #059669;
+}
+
+.panel-text {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: var(--gray-800);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-width: 42ch;
+}
+
+.comparison-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.25rem;
+    color: var(--gray-400);
+    background: var(--gray-50);
+    border-left: 1px solid var(--gray-200);
+    border-right: 1px solid var(--gray-200);
+}
+
+@media (max-width: 768px) {
+    .comparison-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .comparison-divider {
+        padding: 0.5rem;
+        border-left: none;
+        border-right: none;
+        border-top: 1px solid var(--gray-200);
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .comparison-panel {
+        padding: 1rem;
+    }
+}
+
+/* ============ NEW: Corrections Section ============ */
+.corrections-section {
+    margin-bottom: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--gray-100);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0 0 1rem 0;
+}
+
+.correction-count {
+    margin-left: auto;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--gray-500);
+    background: var(--gray-100);
+    padding: 0.2rem 0.6rem;
+    border-radius: 10px;
+}
+
+.corrections-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.correction-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    transition: box-shadow 0.2s;
+}
+
+.correction-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.correction-card.severity-high {
+    border-left: 4px solid #e11d48;
+}
+
+.correction-card.severity-medium {
+    border-left: 4px solid #d97706;
+}
+
+.correction-card.severity-low {
+    border-left: 4px solid #94a3b8;
+}
+
+.correction-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.error-type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.severity-indicator {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    margin-left: auto;
+}
+
+.severity-indicator.severity-high {
+    color: #9f1239;
+    background: #fff1f2;
+}
+
+.severity-indicator.severity-medium {
+    color: #92400e;
+    background: #fffbeb;
+}
+
+.severity-indicator.severity-low {
+    color: #64748b;
+    background: #f8fafc;
+}
+
+.detail-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: none;
+    color: var(--primary-600);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.4rem 0;
+    margin-top: 0.5rem;
+    transition: color 0.2s;
+}
+
+.detail-toggle:hover {
+    color: var(--primary-800);
+    text-decoration: underline;
+}
+
+.correction-explanation-detail {
+    margin: 0.75rem 0 0 0;
+    padding: 1rem 1.125rem;
+    background: var(--gray-50);
+    border-radius: 10px;
+    font-size: 0.875rem;
+    color: var(--gray-700);
+    line-height: 1.7;
+    border-left: 3px solid var(--primary-400);
+    animation: fadeSlideIn 0.2s ease-out;
+    max-width: 58ch;
+}
+
+.correction-brief {
+    margin: 0.5rem 0 0 0;
+    padding: 0;
+    font-size: 0.85rem;
+    color: var(--gray-600);
+    line-height: 1.5;
+    max-width: 58ch;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============ Mobile: Practice Page Improvements ============ */
+@media (max-width: 768px) {
+    .practice-page {
+        padding: 1rem;
+        padding-top: 5rem;
+    }
+
+    .feedback-page {
+        padding: 1rem;
+    }
+
+    .feedback-card,
+    .feedback-card-wide {
+        padding: 1.5rem;
+        border-radius: 18px;
+    }
+
+    .feedback-card-header {
+        margin-bottom: 1.75rem;
+        padding-bottom: 1rem;
+    }
+
+    .feedback-score-box {
+        padding: 1.5rem;
+    }
+
+    .correction-card {
+        padding: 1rem 1.125rem;
+    }
+
+    .text-comparison {
+        border-radius: 14px;
+    }
+
+    .comparison-panel {
+        padding: 1.25rem;
+    }
+
+    .panel-text {
+        font-size: 0.9rem;
+        max-width: none;
+    }
+
+    .writing-textarea {
+        min-height: 200px;
+        font-size: 1rem;
+        padding: 1.25rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .action-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .feedback-box {
+        padding: 1.25rem;
+    }
+
+    .feedback-box ul li {
+        font-size: 0.9rem;
+        max-width: none;
+    }
+
+    .feedback-box p {
+        max-width: none;
+    }
+
+    .feedback-summary-box p {
+        max-width: none;
+    }
+
+    .correction-explanation-detail {
+        max-width: none;
+    }
+
+    .section-title {
+        font-size: 1rem;
+    }
+
+    .error-type-badge {
+        font-size: 0.7rem;
+    }
+
+    .corrections-section {
+        padding-top: 1rem;
+    }
+
+    .expand-btn {
+        margin: 1.25rem 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .practice-page {
+        padding: 0.625rem;
+        padding-top: 4.5rem;
+    }
+
+    .practice-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .practice-header p {
+        font-size: 0.95rem;
+    }
+
+    .feedback-card,
+    .feedback-card-wide {
+        padding: 1.125rem;
+        border-radius: 16px;
+    }
+
+    .score-big {
+        font-size: 2.5rem;
+    }
+
+    .correction-card {
+        padding: 0.875rem 1rem;
+    }
+
+    .correction-row {
+        font-size: 0.9rem;
+    }
+
+    .feedback-buttons {
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1.75rem;
+        padding-top: 1.5rem;
+    }
+
+    .feedback-buttons .btn {
+        width: 100%;
+        text-align: center;
     }
 }

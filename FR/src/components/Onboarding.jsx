@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
     X, ChevronRight, ChevronLeft, Mic, PenTool,
-    BookOpen, Target, Award, Sparkles, Check
+    BookOpen, Target, Award, Sparkles, Check,
+    Eye, AlertCircle, Lightbulb, BarChart3
 } from 'lucide-react';
 import './Onboarding.css';
 
@@ -13,175 +14,138 @@ const Onboarding = ({ onComplete, userName }) => {
     const steps = [
         {
             icon: <Sparkles size={48} />,
-            title: `Bienvenue, ${userName || 'Learner'}! 🎉`,
-            description: "Welcome to FrenchMaster! We're excited to help you master French. Let's take a quick tour of what you can do here.",
-            color: 'primary'
-        },
-        {
-            icon: <BookOpen size={48} />,
-            title: 'Structured Lessons',
-            description: 'Start with our carefully designed lessons that take you from Beginner to Advanced level. Each lesson builds on the previous one.',
-            link: '/lessons',
-            linkText: 'View Lessons',
-            color: 'green'
-        },
-        {
-            icon: <Mic size={48} />,
-            title: 'Speaking Practice',
-            description: 'Speak freely in French about anything and get instant AI-powered feedback on your grammar, fluency, vocabulary, and pronunciation.',
-            link: '/practice/speaking',
-            linkText: 'Try Speaking',
-            color: 'blue'
+            title: `Bienvenue! 🎉`,
+            description: 'Welcome to your French learning journey. This guide will walk you through the tools available to help you practice and improve your French.',
+            features: [
+                { icon: <PenTool size={18} />, text: 'Writing Practice — compose texts on various prompts' },
+                { icon: <Mic size={18} />, text: 'Speaking Practice — record yourself speaking in French' },
+                { icon: <BookOpen size={18} />, text: 'Pronunciation Practice — improve your accent and diction' }
+            ]
         },
         {
             icon: <PenTool size={48} />,
-            title: 'Writing Practice',
-            description: 'Write responses in French and receive detailed corrections with explanations to improve your writing skills.',
-            link: '/practice/writing',
-            linkText: 'Try Writing',
-            color: 'purple'
+            title: 'How to Practice',
+            description: 'Follow these simple steps to get started with any practice mode.',
+            features: [
+                { icon: <Target size={18} />, text: 'Pick a prompt from the available topics' },
+                { icon: <PenTool size={18} />, text: 'Write or speak your response in French' },
+                { icon: <Check size={18} />, text: 'Submit to receive instant AI feedback' }
+            ]
         },
         {
-            icon: <Target size={48} />,
+            icon: <Eye size={48} />,
+            title: 'Understanding Your Feedback',
+            description: 'After submitting, you receive structured AI feedback designed to help you learn efficiently.',
+            features: [
+                { icon: <Eye size={18} />, text: 'Side-by-side comparison: your text vs corrected version' },
+                { icon: <AlertCircle size={18} />, text: 'Color-coded error labels: Grammar, Tense, Vocabulary, etc.' },
+                { icon: <Lightbulb size={18} />, text: 'Expandable explanations with grammar rules and examples' }
+            ]
+        },
+        {
+            icon: <BarChart3 size={48} />,
             title: 'Track Your Progress',
-            description: 'Monitor your improvement with our progress tracker. See your streaks, achievements, and skill breakdown.',
-            link: '/progress',
-            linkText: 'View Progress',
-            color: 'orange'
+            description: 'Your submissions and progress are saved automatically.',
+            features: [
+                { icon: <BarChart3 size={18} />, text: 'View past submissions and scores on the Dashboard' },
+                { icon: <Target size={18} />, text: 'Track common error types (tense, grammar, vocabulary)' },
+                { icon: <Award size={18} />, text: 'Monitor improvement over time in the Progress page' }
+            ]
         },
         {
             icon: <Award size={48} />,
-            title: "You're All Set! 🚀",
-            description: 'Start your French journey now. We recommend beginning with a lesson or jumping straight into practice.',
-            color: 'primary',
-            isFinal: true
+            title: 'Ready to Begin!',
+            description: 'You are all set. Start practicing and improving your French today.',
+            features: [
+                { icon: <Check size={18} />, text: 'Write at least 2-3 sentences for best feedback' },
+                { icon: <Check size={18} />, text: 'Use Chrome or Edge for speech recognition' },
+                { icon: <Check size={18} />, text: 'Review corrections carefully and re-submit to practice' }
+            ]
         }
     ];
 
     const handleNext = () => {
         if (currentStep < steps.length - 1) {
-            setCurrentStep(currentStep + 1);
+            setCurrentStep(prev => prev + 1);
+        } else {
+            handleComplete();
         }
     };
 
     const handlePrev = () => {
         if (currentStep > 0) {
-            setCurrentStep(currentStep - 1);
+            setCurrentStep(prev => prev - 1);
         }
     };
 
     const handleComplete = () => {
         setIsVisible(false);
-        // Save that user has completed onboarding
         localStorage.setItem('onboardingCompleted', 'true');
         if (onComplete) onComplete();
     };
 
     const handleSkip = () => {
-        setIsVisible(false);
-        localStorage.setItem('onboardingCompleted', 'true');
-        if (onComplete) onComplete();
+        handleComplete();
     };
 
     if (!isVisible) return null;
 
-    const currentStepData = steps[currentStep];
+    const step = steps[currentStep];
 
     return (
-        <div className="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+        <div className="onboarding-overlay">
             <div className="onboarding-modal">
-                {/* Skip button */}
-                <button
-                    className="onboarding-skip"
-                    onClick={handleSkip}
-                    aria-label="Skip onboarding"
-                >
+                <button className="onboarding-close" onClick={handleSkip}>
                     <X size={20} />
                 </button>
 
+                <div className="onboarding-content">
+                    <div className="onboarding-icon">{step.icon}</div>
+                    <h2 className="onboarding-title">{step.title}</h2>
+                    <p className="onboarding-description">{step.description}</p>
+
+                    {step.features && (
+                        <div className="onboarding-features">
+                            {step.features.map((feature, index) => (
+                                <div key={index} className="onboarding-feature">
+                                    <div className="feature-icon">{feature.icon}</div>
+                                    <span className="feature-text">{feature.text}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
                 {/* Progress dots */}
-                <div className="onboarding-progress" role="tablist" aria-label="Onboarding steps">
+                <div className="onboarding-dots">
                     {steps.map((_, index) => (
                         <button
                             key={index}
-                            className={`progress-dot ${index === currentStep ? 'active' : ''} ${index < currentStep ? 'completed' : ''}`}
+                            className={`dot ${index === currentStep ? 'active' : ''} ${index < currentStep ? 'completed' : ''}`}
                             onClick={() => setCurrentStep(index)}
-                            aria-label={`Step ${index + 1} of ${steps.length}`}
-                            aria-selected={index === currentStep}
-                            role="tab"
-                        >
-                            {index < currentStep && <Check size={10} />}
-                        </button>
+                        />
                     ))}
                 </div>
 
-                {/* Content */}
-                <div className="onboarding-content">
-                    <div className={`onboarding-icon ${currentStepData.color}`}>
-                        {currentStepData.icon}
-                    </div>
-
-                    <h2 id="onboarding-title">{currentStepData.title}</h2>
-                    <p>{currentStepData.description}</p>
-
-                    {currentStepData.link && (
-                        <Link
-                            to={currentStepData.link}
-                            className="onboarding-feature-link"
-                            onClick={handleComplete}
-                        >
-                            {currentStepData.linkText}
-                            <ChevronRight size={16} />
-                        </Link>
-                    )}
-                </div>
-
                 {/* Navigation */}
-                <div className="onboarding-actions">
-                    {currentStep > 0 && (
-                        <button
-                            className="btn btn-secondary"
-                            onClick={handlePrev}
-                            aria-label="Previous step"
-                        >
-                            <ChevronLeft size={18} />
-                            Back
+                <div className="onboarding-nav">
+                    {currentStep > 0 ? (
+                        <button className="nav-btn prev" onClick={handlePrev}>
+                            <ChevronLeft size={18} /> Back
                         </button>
-                    )}
-
-                    {currentStep === 0 && (
-                        <button
-                            className="btn btn-ghost"
-                            onClick={handleSkip}
-                        >
-                            Skip Tour
-                        </button>
-                    )}
-
-                    {currentStepData.isFinal ? (
-                        <Link
-                            to="/lessons"
-                            className="btn btn-primary"
-                            onClick={handleComplete}
-                        >
-                            Start Learning
-                            <ChevronRight size={18} />
-                        </Link>
                     ) : (
-                        <button
-                            className="btn btn-primary"
-                            onClick={handleNext}
-                            aria-label="Next step"
-                        >
-                            Next
-                            <ChevronRight size={18} />
+                        <button className="nav-btn skip" onClick={handleSkip}>
+                            Skip
                         </button>
                     )}
-                </div>
 
-                {/* Step counter */}
-                <div className="onboarding-step-counter" aria-live="polite">
-                    Step {currentStep + 1} of {steps.length}
+                    <button className="nav-btn next" onClick={handleNext}>
+                        {currentStep === steps.length - 1 ? (
+                            <>Start Practicing <Check size={18} /></>
+                        ) : (
+                            <>Next <ChevronRight size={18} /></>
+                        )}
+                    </button>
                 </div>
             </div>
         </div>
