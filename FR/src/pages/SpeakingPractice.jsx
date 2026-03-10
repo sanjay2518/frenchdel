@@ -44,6 +44,7 @@ const SpeakingPractice = () => {
 
     // Real-time speech transcription
     const [transcription, setTranscription] = useState('');
+    const [interimText, setInterimText] = useState('');
     const [isListening, setIsListening] = useState(false);
     const [speechSupported, setSpeechSupported] = useState(false);
 
@@ -53,61 +54,131 @@ const SpeakingPractice = () => {
     const audioRef = useRef(null);
     const fileInputRef = useRef(null);
     const recognitionRef = useRef(null);
+    const isRecordingRef = useRef(false);
+    const transcriptionRef = useRef('');
+    const restartTimeoutRef = useRef(null);
 
-    // Initialize Speech Recognition
+    // Keep ref in sync with state
+    useEffect(() => {
+        isRecordingRef.current = isRecording;
+    }, [isRecording]);
+
+    // Helper to safely restart recognition
+    const safeRestartRecognition = (delay = 300) => {
+        if (restartTimeoutRef.current) {
+            clearTimeout(restartTimeoutRef.current);
+        }
+        restartTimeoutRef.current = setTimeout(() => {
+            if (isRecordingRef.current && recognitionRef.current) {
+                try {
+                    recognitionRef.current.start();
+                    console.log('🔄 Speech recognition restarted');
+                } catch (e) {
+                    console.log('Speech recognition restart skipped:', e.message);
+                }
+            }
+        }, delay);
+    };
+
+    // Initialize Speech Recognition ONCE on mount
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
             setSpeechSupported(true);
-            recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = true;
-            recognitionRef.current.interimResults = true;
-            recognitionRef.current.lang = 'fr-FR';
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 3;
 
-            recognitionRef.current.onresult = (event) => {
+            // Try fr-FR first, some devices need just 'fr'
+            try {
+                recognition.lang = 'fr-FR';
+            } catch (e) {
+                recognition.lang = 'fr';
+            }
+
+            recognition.onresult = (event) => {
                 let finalTranscript = '';
+                let currentInterim = '';
+
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
+                    // Pick the best alternative (highest confidence)
+                    let bestTranscript = event.results[i][0].transcript;
+                    let bestConfidence = event.results[i][0].confidence;
+                    for (let j = 1; j < event.results[i].length; j++) {
+                        if (event.results[i][j].confidence > bestConfidence) {
+                            bestTranscript = event.results[i][j].transcript;
+                            bestConfidence = event.results[i][j].confidence;
+                        }
+                    }
+
                     if (event.results[i].isFinal) {
-                        finalTranscript += transcript + ' ';
+                        finalTranscript += bestTranscript + ' ';
+                    } else {
+                        currentInterim += bestTranscript;
                     }
                 }
+
+                // Always update interim text for visual feedback
+                setInterimText(currentInterim);
+
                 if (finalTranscript) {
-                    setTranscription(prev => prev + finalTranscript);
+                    transcriptionRef.current += finalTranscript;
+                    setTranscription(transcriptionRef.current);
+                    setInterimText('');
+                    console.log('✅ French speech captured:', finalTranscript.trim());
                 }
             };
 
-            recognitionRef.current.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
+            recognition.onerror = (event) => {
+                console.warn('Speech recognition error:', event.error);
+
                 if (event.error === 'not-allowed') {
-                    alert('Microphone access denied. Please allow microphone access for speech recognition.');
+                    alert('Microphone access was denied. Please allow microphone access in your browser settings and try again.');
+                    return;
                 }
-                if (event.error === 'aborted' || event.error === 'network') {
-                    // Chrome mobile: recognition stops when app goes to background
-                    if (isRecording && recognitionRef.current) {
-                        setTimeout(() => {
-                            try { recognitionRef.current.start(); } catch (e) { /* already running */ }
-                        }, 500);
+
+                if (event.error === 'language-not-supported') {
+                    console.log('Trying fallback language: fr');
+                    try {
+                        recognition.lang = 'fr';
+                        safeRestartRecognition(500);
+                    } catch (e) {
+                        console.error('Language fallback failed:', e);
                     }
+                    return;
                 }
-                if (event.error === 'no-speech' && isRecording && recognitionRef.current) {
-                    try { recognitionRef.current.start(); } catch (e) { /* already running */ }
+
+                // For all other errors (no-speech, aborted, network, audio-capture),
+                // auto-restart if we're still recording
+                if (isRecordingRef.current) {
+                    const delay = event.error === 'no-speech' ? 100 : 500;
+                    safeRestartRecognition(delay);
                 }
             };
 
-            recognitionRef.current.onend = () => {
-                if (isRecording && recognitionRef.current) {
-                    setTimeout(() => {
-                        try { recognitionRef.current.start(); } catch (e) { /* already running */ }
-                    }, 300);
+            recognition.onend = () => {
+                console.log('Speech recognition ended, isRecording:', isRecordingRef.current);
+                // Auto-restart if still recording
+                if (isRecordingRef.current) {
+                    safeRestartRecognition(200);
                 }
             };
+
+            recognitionRef.current = recognition;
+        } else {
+            console.warn('SpeechRecognition API not available in this browser');
         }
 
         return () => {
-            if (recognitionRef.current) recognitionRef.current.stop();
+            if (restartTimeoutRef.current) {
+                clearTimeout(restartTimeoutRef.current);
+            }
+            if (recognitionRef.current) {
+                try { recognitionRef.current.stop(); } catch (e) { /* ignore */ }
+            }
         };
-    }, [isRecording]);
+    }, []);
 
     useEffect(() => {
         const fetchPrompts = async () => {
@@ -135,7 +206,16 @@ const SpeakingPractice = () => {
     const startRecording = async () => {
         try {
             setTranscription('');
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            setInterimText('');
+            transcriptionRef.current = '';
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                    sampleRate: 44100
+                }
+            });
             mediaRecorderRef.current = new MediaRecorder(stream);
             audioChunksRef.current = [];
 
@@ -171,7 +251,23 @@ const SpeakingPractice = () => {
             setIsRecording(false);
             setIsListening(false);
             if (timerRef.current) clearInterval(timerRef.current);
-            if (recognitionRef.current) recognitionRef.current.stop();
+
+            if (restartTimeoutRef.current) {
+                clearTimeout(restartTimeoutRef.current);
+            }
+
+            // Flush any remaining interim text into the final transcription
+            setInterimText(prevInterim => {
+                if (prevInterim && prevInterim.trim()) {
+                    transcriptionRef.current += prevInterim + ' ';
+                    setTranscription(transcriptionRef.current);
+                }
+                return '';
+            });
+
+            if (recognitionRef.current) {
+                try { recognitionRef.current.stop(); } catch (e) { /* ignore */ }
+            }
         }
     };
 
@@ -187,6 +283,8 @@ const SpeakingPractice = () => {
         setAudioUrl(null);
         setRecordingTime(0);
         setTranscription('');
+        setInterimText('');
+        transcriptionRef.current = '';
     };
 
     const formatTime = (seconds) => `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`;
@@ -245,6 +343,8 @@ const SpeakingPractice = () => {
         setShowDetailedFeedback(false);
         setRecordingTime(0);
         setTranscription('');
+        setInterimText('');
+        transcriptionRef.current = '';
         setExpandedCorrections({});
     };
 
@@ -560,7 +660,10 @@ const SpeakingPractice = () => {
                                     <span>Real-time transcription (French):</span>
                                 </div>
                                 <div className="transcription-text">
-                                    {transcription || <span className="placeholder">Listening... Start speaking in French</span>}
+                                    {transcription || interimText
+                                        ? <>{transcription}<span className="interim-text" style={{ color: '#999', fontStyle: 'italic' }}>{interimText}</span></>
+                                        : <span className="placeholder">Listening... Start speaking in French</span>
+                                    }
                                 </div>
                             </div>
                         )}
