@@ -52,6 +52,7 @@ const FreeSpeakingPractice = () => {
     const isRecordingRef = useRef(false);
     const feedbackRef = useRef(null);
     const transcriptionRef = useRef('');
+    const interimRef = useRef('');
     const restartTimeoutRef = useRef(null);
     const [waveBars, setWaveBars] = useState(Array(40).fill(20));
 
@@ -60,8 +61,19 @@ const FreeSpeakingPractice = () => {
         isRecordingRef.current = isRecording;
     }, [isRecording]);
 
+    // Flush any pending interim text into the final transcription
+    const flushInterimText = () => {
+        if (interimRef.current && interimRef.current.trim()) {
+            transcriptionRef.current += interimRef.current + ' ';
+            setTranscription(transcriptionRef.current);
+            console.log('📝 Flushed interim text:', interimRef.current.trim());
+        }
+        interimRef.current = '';
+        setInterimText('');
+    };
+
     // Helper to safely restart recognition
-    const safeRestartRecognition = (delay = 300) => {
+    const safeRestartRecognition = (delay = 50) => {
         if (restartTimeoutRef.current) {
             clearTimeout(restartTimeoutRef.current);
         }
@@ -71,8 +83,16 @@ const FreeSpeakingPractice = () => {
                     recognitionRef.current.start();
                     console.log('🔄 Speech recognition restarted');
                 } catch (e) {
-                    // Already running or other error — ignore
+                    // Already running — try stopping and starting again
                     console.log('Speech recognition restart skipped:', e.message);
+                    try {
+                        recognitionRef.current.stop();
+                        setTimeout(() => {
+                            if (isRecordingRef.current && recognitionRef.current) {
+                                try { recognitionRef.current.start(); } catch (e2) { /* give up */ }
+                            }
+                        }, 100);
+                    } catch (e2) { /* ignore */ }
                 }
             }
         }, delay);
@@ -117,10 +137,13 @@ const FreeSpeakingPractice = () => {
                     }
                 }
 
-                // Always update interim text for visual feedback
+                // Track interim text in ref so it can be flushed on restart
+                interimRef.current = currentInterim;
                 setInterimText(currentInterim);
 
                 if (finalTranscript) {
+                    // Clear interim since we got a final result
+                    interimRef.current = '';
                     transcriptionRef.current += finalTranscript;
                     setTranscription(transcriptionRef.current);
                     setInterimText('');
@@ -141,27 +164,27 @@ const FreeSpeakingPractice = () => {
                     console.log('Trying fallback language: fr');
                     try {
                         recognition.lang = 'fr';
-                        safeRestartRecognition(500);
                     } catch (e) {
                         console.error('Language fallback failed:', e);
                     }
-                    return;
                 }
 
-                // For all other errors (no-speech, aborted, network, audio-capture),
-                // auto-restart if we're still recording
+                // For all errors except not-allowed, auto-restart if still recording
                 if (isRecordingRef.current) {
-                    const delay = event.error === 'no-speech' ? 100 : 500;
+                    // Flush interim text before restarting so nothing is lost
+                    flushInterimText();
+                    const delay = event.error === 'no-speech' ? 50 : 300;
                     safeRestartRecognition(delay);
                 }
             };
 
             recognition.onend = () => {
-                console.log('Speech recognition ended, isRecording:', isRecordingRef.current);
-                // Auto-restart if still recording — this is critical for
-                // Chrome mobile which stops recognition after ~60s
+                console.log('Speech recognition session ended, isRecording:', isRecordingRef.current);
+                // CRITICAL: Flush any interim text before restarting
+                // This prevents losing words between recognition sessions
                 if (isRecordingRef.current) {
-                    safeRestartRecognition(200);
+                    flushInterimText();
+                    safeRestartRecognition(50);
                 }
             };
 
@@ -202,6 +225,7 @@ const FreeSpeakingPractice = () => {
             setTranscription('');
             setInterimText('');
             transcriptionRef.current = '';
+            interimRef.current = '';
             setFeedback(null);
             setExpandedCorrections({});
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -259,14 +283,7 @@ const FreeSpeakingPractice = () => {
             }
 
             // Flush any remaining interim text into the final transcription
-            // This ensures short recordings don't lose their content
-            setInterimText(prevInterim => {
-                if (prevInterim && prevInterim.trim()) {
-                    transcriptionRef.current += prevInterim + ' ';
-                    setTranscription(transcriptionRef.current);
-                }
-                return '';
-            });
+            flushInterimText();
 
             if (recognitionRef.current) {
                 try { recognitionRef.current.stop(); } catch (e) { /* ignore */ }
@@ -288,6 +305,7 @@ const FreeSpeakingPractice = () => {
         setTranscription('');
         setInterimText('');
         transcriptionRef.current = '';
+        interimRef.current = '';
         setFeedback(null);
         setExpandedCorrections({});
     };
@@ -369,6 +387,7 @@ const FreeSpeakingPractice = () => {
         setTranscription('');
         setInterimText('');
         transcriptionRef.current = '';
+        interimRef.current = '';
         setExpandedCorrections({});
     };
 

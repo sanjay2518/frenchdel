@@ -55,6 +55,7 @@ const PronunciationPractice = () => {
     const recognitionRef = useRef(null);
     const isRecordingRef = useRef(false);
     const transcriptionRef = useRef('');
+    const interimRef = useRef('');
     const restartTimeoutRef = useRef(null);
 
     // Keep ref in sync with state
@@ -62,8 +63,19 @@ const PronunciationPractice = () => {
         isRecordingRef.current = isRecording;
     }, [isRecording]);
 
+    // Flush any pending interim text into the final transcription
+    const flushInterimText = () => {
+        if (interimRef.current && interimRef.current.trim()) {
+            transcriptionRef.current += interimRef.current + ' ';
+            setTranscription(transcriptionRef.current);
+            console.log('📝 Flushed interim text:', interimRef.current.trim());
+        }
+        interimRef.current = '';
+        setInterimText('');
+    };
+
     // Helper to safely restart recognition
-    const safeRestartRecognition = (delay = 300) => {
+    const safeRestartRecognition = (delay = 50) => {
         if (restartTimeoutRef.current) {
             clearTimeout(restartTimeoutRef.current);
         }
@@ -74,6 +86,14 @@ const PronunciationPractice = () => {
                     console.log('🔄 Speech recognition restarted');
                 } catch (e) {
                     console.log('Speech recognition restart skipped:', e.message);
+                    try {
+                        recognitionRef.current.stop();
+                        setTimeout(() => {
+                            if (isRecordingRef.current && recognitionRef.current) {
+                                try { recognitionRef.current.start(); } catch (e2) { /* give up */ }
+                            }
+                        }, 100);
+                    } catch (e2) { /* ignore */ }
                 }
             }
         }, delay);
@@ -101,7 +121,6 @@ const PronunciationPractice = () => {
                 let currentInterim = '';
 
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    // Pick the best alternative (highest confidence)
                     let bestTranscript = event.results[i][0].transcript;
                     let bestConfidence = event.results[i][0].confidence;
                     for (let j = 1; j < event.results[i].length; j++) {
@@ -118,10 +137,11 @@ const PronunciationPractice = () => {
                     }
                 }
 
-                // Always update interim text for visual feedback
+                interimRef.current = currentInterim;
                 setInterimText(currentInterim);
 
                 if (finalTranscript) {
+                    interimRef.current = '';
                     transcriptionRef.current += finalTranscript;
                     setTranscription(transcriptionRef.current);
                     setInterimText('');
@@ -141,26 +161,23 @@ const PronunciationPractice = () => {
                     console.log('Trying fallback language: fr');
                     try {
                         recognition.lang = 'fr';
-                        safeRestartRecognition(500);
                     } catch (e) {
                         console.error('Language fallback failed:', e);
                     }
-                    return;
                 }
 
-                // For all other errors (no-speech, aborted, network, audio-capture),
-                // auto-restart if we're still recording
                 if (isRecordingRef.current) {
-                    const delay = event.error === 'no-speech' ? 100 : 500;
+                    flushInterimText();
+                    const delay = event.error === 'no-speech' ? 50 : 300;
                     safeRestartRecognition(delay);
                 }
             };
 
             recognition.onend = () => {
-                console.log('Speech recognition ended, isRecording:', isRecordingRef.current);
-                // Auto-restart if still recording
+                console.log('Speech recognition session ended, isRecording:', isRecordingRef.current);
                 if (isRecordingRef.current) {
-                    safeRestartRecognition(200);
+                    flushInterimText();
+                    safeRestartRecognition(50);
                 }
             };
 
@@ -207,6 +224,7 @@ const PronunciationPractice = () => {
             setTranscription('');
             setInterimText('');
             transcriptionRef.current = '';
+            interimRef.current = '';
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
@@ -256,13 +274,7 @@ const PronunciationPractice = () => {
             }
 
             // Flush any remaining interim text into the final transcription
-            setInterimText(prevInterim => {
-                if (prevInterim && prevInterim.trim()) {
-                    transcriptionRef.current += prevInterim + ' ';
-                    setTranscription(transcriptionRef.current);
-                }
-                return '';
-            });
+            flushInterimText();
 
             if (recognitionRef.current) {
                 try { recognitionRef.current.stop(); } catch (e) { /* ignore */ }
@@ -284,6 +296,7 @@ const PronunciationPractice = () => {
         setTranscription('');
         setInterimText('');
         transcriptionRef.current = '';
+        interimRef.current = '';
     };
 
     const formatTime = (seconds) => `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`;
@@ -344,6 +357,7 @@ const PronunciationPractice = () => {
         setTranscription('');
         setInterimText('');
         transcriptionRef.current = '';
+        interimRef.current = '';
         setExpandedCorrections({});
     };
 
