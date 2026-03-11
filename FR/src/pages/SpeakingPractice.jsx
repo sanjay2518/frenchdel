@@ -10,6 +10,7 @@ import {
     Eye, ArrowRight
 } from 'lucide-react';
 import API_URL from '../config/api';
+import useFrenchSpeechRecognition from '../hooks/useFrenchSpeechRecognition';
 import './Practice.css';
 
 const ERROR_TYPE_CONFIG = {
@@ -42,160 +43,19 @@ const SpeakingPractice = () => {
     const [showDetailedFeedback, setShowDetailedFeedback] = useState(false);
     const [expandedCorrections, setExpandedCorrections] = useState({});
 
-    // Real-time speech transcription
-    const [transcription, setTranscription] = useState('');
-    const [interimText, setInterimText] = useState('');
-    const [isListening, setIsListening] = useState(false);
-    const [speechSupported, setSpeechSupported] = useState(false);
+    // Speech recognition via shared hook
+    const {
+        transcription, interimText, isListening, speechSupported,
+        startListening, stopListening, resetTranscription, getTranscription,
+    } = useFrenchSpeechRecognition();
 
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const timerRef = useRef(null);
     const audioRef = useRef(null);
     const fileInputRef = useRef(null);
-    const recognitionRef = useRef(null);
-    const isRecordingRef = useRef(false);
-    const transcriptionRef = useRef('');
-    const interimRef = useRef('');
-    const restartTimeoutRef = useRef(null);
 
-    // Keep ref in sync with state
-    useEffect(() => {
-        isRecordingRef.current = isRecording;
-    }, [isRecording]);
 
-    // Flush any pending interim text into the final transcription
-    const flushInterimText = () => {
-        if (interimRef.current && interimRef.current.trim()) {
-            transcriptionRef.current += interimRef.current + ' ';
-            setTranscription(transcriptionRef.current);
-            console.log('📝 Flushed interim text:', interimRef.current.trim());
-        }
-        interimRef.current = '';
-        setInterimText('');
-    };
-
-    // Helper to safely restart recognition
-    const safeRestartRecognition = (delay = 50) => {
-        if (restartTimeoutRef.current) {
-            clearTimeout(restartTimeoutRef.current);
-        }
-        restartTimeoutRef.current = setTimeout(() => {
-            if (isRecordingRef.current && recognitionRef.current) {
-                try {
-                    recognitionRef.current.start();
-                    console.log('🔄 Speech recognition restarted');
-                } catch (e) {
-                    console.log('Speech recognition restart skipped:', e.message);
-                    try {
-                        recognitionRef.current.stop();
-                        setTimeout(() => {
-                            if (isRecordingRef.current && recognitionRef.current) {
-                                try { recognitionRef.current.start(); } catch (e2) { /* give up */ }
-                            }
-                        }, 100);
-                    } catch (e2) { /* ignore */ }
-                }
-            }
-        }, delay);
-    };
-
-    // Initialize Speech Recognition ONCE on mount
-    useEffect(() => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            setSpeechSupported(true);
-            const recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.maxAlternatives = 3;
-
-            // Try fr-FR first, some devices need just 'fr'
-            try {
-                recognition.lang = 'fr-FR';
-            } catch (e) {
-                recognition.lang = 'fr';
-            }
-
-            recognition.onresult = (event) => {
-                let finalTranscript = '';
-                let currentInterim = '';
-
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    let bestTranscript = event.results[i][0].transcript;
-                    let bestConfidence = event.results[i][0].confidence;
-                    for (let j = 1; j < event.results[i].length; j++) {
-                        if (event.results[i][j].confidence > bestConfidence) {
-                            bestTranscript = event.results[i][j].transcript;
-                            bestConfidence = event.results[i][j].confidence;
-                        }
-                    }
-
-                    if (event.results[i].isFinal) {
-                        finalTranscript += bestTranscript + ' ';
-                    } else {
-                        currentInterim += bestTranscript;
-                    }
-                }
-
-                interimRef.current = currentInterim;
-                setInterimText(currentInterim);
-
-                if (finalTranscript) {
-                    interimRef.current = '';
-                    transcriptionRef.current += finalTranscript;
-                    setTranscription(transcriptionRef.current);
-                    setInterimText('');
-                    console.log('✅ French speech captured:', finalTranscript.trim());
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.warn('Speech recognition error:', event.error);
-
-                if (event.error === 'not-allowed') {
-                    alert('Microphone access was denied. Please allow microphone access in your browser settings and try again.');
-                    return;
-                }
-
-                if (event.error === 'language-not-supported') {
-                    console.log('Trying fallback language: fr');
-                    try {
-                        recognition.lang = 'fr';
-                    } catch (e) {
-                        console.error('Language fallback failed:', e);
-                    }
-                }
-
-                if (isRecordingRef.current) {
-                    flushInterimText();
-                    const delay = event.error === 'no-speech' ? 50 : 300;
-                    safeRestartRecognition(delay);
-                }
-            };
-
-            recognition.onend = () => {
-                console.log('Speech recognition session ended, isRecording:', isRecordingRef.current);
-                if (isRecordingRef.current) {
-                    flushInterimText();
-                    safeRestartRecognition(50);
-                }
-            };
-
-            recognitionRef.current = recognition;
-        } else {
-            console.warn('SpeechRecognition API not available in this browser');
-        }
-
-        return () => {
-            if (restartTimeoutRef.current) {
-                clearTimeout(restartTimeoutRef.current);
-            }
-            if (recognitionRef.current) {
-                try { recognitionRef.current.stop(); } catch (e) { /* ignore */ }
-            }
-        };
-    }, []);
 
     useEffect(() => {
         const fetchPrompts = async () => {
@@ -222,10 +82,7 @@ const SpeakingPractice = () => {
 
     const startRecording = async () => {
         try {
-            setTranscription('');
-            setInterimText('');
-            transcriptionRef.current = '';
-            interimRef.current = '';
+            resetTranscription();
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
@@ -249,13 +106,9 @@ const SpeakingPractice = () => {
             setRecordingTime(0);
             timerRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
 
-            if (recognitionRef.current && speechSupported) {
-                try {
-                    recognitionRef.current.start();
-                    setIsListening(true);
-                } catch (e) {
-                    console.log('Recognition start error:', e);
-                }
+            // Start speech recognition
+            if (speechSupported) {
+                startListening();
             }
         } catch (err) {
             alert('Unable to access microphone.');
@@ -267,19 +120,10 @@ const SpeakingPractice = () => {
             mediaRecorderRef.current.stop();
             mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
             setIsRecording(false);
-            setIsListening(false);
             if (timerRef.current) clearInterval(timerRef.current);
 
-            if (restartTimeoutRef.current) {
-                clearTimeout(restartTimeoutRef.current);
-            }
-
-            // Flush any remaining interim text into the final transcription
-            flushInterimText();
-
-            if (recognitionRef.current) {
-                try { recognitionRef.current.stop(); } catch (e) { /* ignore */ }
-            }
+            // Stop speech recognition (flushes interim text automatically)
+            stopListening();
         }
     };
 
@@ -294,17 +138,15 @@ const SpeakingPractice = () => {
         setRecordedBlob(null);
         setAudioUrl(null);
         setRecordingTime(0);
-        setTranscription('');
-        setInterimText('');
-        transcriptionRef.current = '';
-        interimRef.current = '';
+        resetTranscription();
     };
 
     const formatTime = (seconds) => `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`;
 
     const handleSubmit = async () => {
         if (!recordedBlob || !selectedPrompt) return;
-        if (!transcription.trim()) {
+        const currentTranscription = getTranscription() || transcription;
+        if (!currentTranscription.trim()) {
             alert('No speech was detected. Please speak in French while recording.');
             return;
         }
@@ -323,7 +165,7 @@ const SpeakingPractice = () => {
                     difficulty: selectedPrompt.difficulty,
                     userId: user?.id,
                     promptId: selectedPrompt.id,
-                    transcription: transcription
+                    transcription: currentTranscription
                 })
             });
 
@@ -336,7 +178,7 @@ const SpeakingPractice = () => {
                 promptId: selectedPrompt.id,
                 difficulty: selectedPrompt.difficulty,
                 duration: recordingTime,
-                transcription: transcription
+                transcription: currentTranscription
             });
             setSubmitted(true);
         } catch (err) {
@@ -355,10 +197,7 @@ const SpeakingPractice = () => {
         setFeedback(null);
         setShowDetailedFeedback(false);
         setRecordingTime(0);
-        setTranscription('');
-        setInterimText('');
-        transcriptionRef.current = '';
-        interimRef.current = '';
+        resetTranscription();
         setExpandedCorrections({});
     };
 
