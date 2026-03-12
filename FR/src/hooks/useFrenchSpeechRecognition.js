@@ -15,6 +15,10 @@
  *    words are ever silently dropped between recognition sessions.
  * 6. Tracks confidence scores for pronunciation quality scoring.
  * 7. Calculates fluency (words per minute) from word count and elapsed time.
+ * 8. MOBILE FIXES: Handles mobile Chrome/Android quirks — disables continuous
+ *    mode on mobile (which is unreliable), uses faster restart cycles,
+ *    tries both 'fr-FR' and 'fr' language codes, and adds a watchdog timer
+ *    to detect when recognition silently dies on mobile.
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
@@ -26,6 +30,14 @@ const STATE = {
     LISTENING: 'LISTENING',
     STOPPING: 'STOPPING',
 };
+
+// ─── Mobile detection ────────────────────────────────────────────
+function isMobileDevice() {
+    if (typeof navigator === 'undefined') return false;
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+    ) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+}
 
 export default function useFrenchSpeechRecognition() {
     // ─── Public state ───────────────────────────────────────────────
@@ -47,6 +59,10 @@ export default function useFrenchSpeechRecognition() {
     const backoffRef = useRef(50);            // current restart delay (ms)
     const lastResultTimeRef = useRef(0);      // for adaptive back-off
     const langRef = useRef('fr-FR');          // active language code
+    const isMobileRef = useRef(false);        // mobile device flag
+    const watchdogRef = useRef(null);         // mobile watchdog timer
+    const startAttemptTimeRef = useRef(0);    // to detect instant-end on mobile
+    const langTriedRef = useRef(new Set());   // track which lang codes were tried
 
     // ─── Pronunciation & Fluency tracking refs ──────────────────────
     const confidenceScoresRef = useRef([]);   // array of confidence values
@@ -57,6 +73,10 @@ export default function useFrenchSpeechRecognition() {
     useEffect(() => {
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         setSpeechSupported(!!SR);
+        isMobileRef.current = isMobileDevice();
+        if (isMobileRef.current) {
+            console.log('📱 Mobile device detected — using mobile-optimized recognition');
+        }
     }, []);
 
     // ─── Helpers ────────────────────────────────────────────────────
@@ -73,8 +93,17 @@ export default function useFrenchSpeechRecognition() {
         setInterimText('');
     }, []);
 
+    /** Stop the mobile watchdog timer */
+    const clearWatchdog = useCallback(() => {
+        if (watchdogRef.current) {
+            clearInterval(watchdogRef.current);
+            watchdogRef.current = null;
+        }
+    }, []);
+
     /** Destroy the current recognition instance cleanly */
     const destroyRecognition = useCallback(() => {
+        clearWatchdog();
         const r = recognitionRef.current;
         if (r) {
             // Remove all listeners so old instances don't fire ghost events
@@ -84,10 +113,39 @@ export default function useFrenchSpeechRecognition() {
             r.onstart = null;
             r.onaudiostart = null;
             r.onaudioend = null;
+            r.onspeechstart = null;
+            r.onspeechend = null;
             try { r.abort(); } catch (_) { /* ignore */ }
             recognitionRef.current = null;
         }
-    }, []);
+    }, [clearWatchdog]);
+
+    /** Start mobile watchdog — detects if recognition silently dies */
+    const startWatchdog = useCallback(() => {
+        clearWatchdog();
+        if (!isMobileRef.current) return;
+
+        // On mobile, check every 8 seconds if recognition is alive
+        // If no results received for 10+ seconds while active, force restart
+        watchdogRef.current = setInterval(() => {
+            if (!activeRef.current) {
+                clearWatchdog();
+                return;
+            }
+
+            const timeSinceLastResult = Date.now() - lastResultTimeRef.current;
+            const timeSinceStart = Date.now() - startAttemptTimeRef.current;
+
+            // If more than 10s since last result AND we've been running for >5s
+            // This means mobile recognition silently died
+            if (timeSinceStart > 5000 && timeSinceLastResult > 10000 && lastResultTimeRef.current > 0) {
+                console.log('📱🔄 Watchdog: No results for 10s, forcing restart');
+                destroyRecognition();
+                stateRef.current = STATE.IDLE;
+                scheduleRestart();
+            }
+        }, 8000);
+    }, [clearWatchdog, destroyRecognition]);
 
     /** Create a fresh SpeechRecognition instance with all handlers wired up */
     const createRecognition = useCallback(() => {
@@ -95,22 +153,38 @@ export default function useFrenchSpeechRecognition() {
         if (!SR) return null;
 
         const recognition = new SR();
-        recognition.continuous = true;
+        const mobile = isMobileRef.current;
+
+        // ── CRITICAL MOBILE FIX ──
+        // Mobile Chrome does NOT reliably support continuous mode.
+        // On mobile, we use continuous=false and restart after each result.
+        // On desktop, continuous=true works fine.
+        recognition.continuous = !mobile;
         recognition.interimResults = true;
-        recognition.maxAlternatives = 3;
+        recognition.maxAlternatives = mobile ? 1 : 3;
         recognition.lang = langRef.current;
+
+        if (mobile) {
+            console.log('📱 Creating mobile recognition (continuous=false, lang=' + langRef.current + ')');
+        }
 
         // ── onstart ──────────────────────────────────────────────
         recognition.onstart = () => {
             stateRef.current = STATE.LISTENING;
             setIsListening(true);
-            console.log('🟢 Recognition started (lang:', langRef.current, ')');
+            startAttemptTimeRef.current = Date.now();
+            console.log('🟢 Recognition started (lang:', langRef.current, ', mobile:', mobile, ')');
         };
 
         // ── onaudiostart ─────────────────────────────────────────
         recognition.onaudiostart = () => {
             // Reset back-off once we successfully start receiving audio
-            backoffRef.current = 50;
+            backoffRef.current = mobile ? 100 : 50;
+        };
+
+        // ── onspeechstart (mobile debug) ─────────────────────────
+        recognition.onspeechstart = () => {
+            console.log('🗣️ Speech detected by browser');
         };
 
         // ── onresult ─────────────────────────────────────────────
@@ -170,50 +244,90 @@ export default function useFrenchSpeechRecognition() {
                     const elapsedMinutes = (Date.now() - startTimeRef.current) / 60000;
                     if (elapsedMinutes > 0.05) { // At least 3 seconds
                         const wpm = Math.round(words.length / elapsedMinutes);
-                        // Normalize: native French ~150 wpm, beginner ~60 wpm
-                        // Score 0-100 where 80-130 wpm is ideal range
                         const normalized = Math.min(100, Math.round((wpm / 130) * 100));
                         setFluencyScore(normalized);
                     }
                 }
 
                 console.log('✅ Final:', finalChunk.trim());
+
+                // ── MOBILE FIX: If on mobile and recognition ended after final result,
+                // we need to restart quickly since continuous=false
+                if (mobile && activeRef.current) {
+                    // Reset backoff since we got a good result
+                    backoffRef.current = 100;
+                }
             }
         };
 
         // ── onerror ──────────────────────────────────────────────
         recognition.onerror = (event) => {
-            console.warn('⚠️ SpeechRecognition error:', event.error);
+            console.warn('⚠️ SpeechRecognition error:', event.error, '(mobile:', mobile, ')');
 
             if (event.error === 'not-allowed') {
                 activeRef.current = false;
                 stateRef.current = STATE.IDLE;
                 setIsListening(false);
+                clearWatchdog();
                 alert('Microphone access was denied. Please allow microphone access in your browser settings and try again.');
                 return;
             }
 
             if (event.error === 'language-not-supported') {
-                // Fallback: fr-FR → fr
+                // Fallback chain: fr-FR → fr → en-US (last resort for testing)
                 if (langRef.current === 'fr-FR') {
                     langRef.current = 'fr';
+                    langTriedRef.current.add('fr-FR');
                     console.log('🔃 Language fallback → fr');
+                } else if (langRef.current === 'fr' && !langTriedRef.current.has('fr-FR')) {
+                    langRef.current = 'fr-FR';
+                    langTriedRef.current.add('fr');
+                    console.log('🔃 Language fallback → fr-FR');
                 }
+            }
+
+            // 'no-speech' error — very common on mobile, just restart
+            if (event.error === 'no-speech') {
+                console.log('📱 No speech error — will restart via onend');
+                // Don't increase backoff for no-speech on mobile
+                if (mobile) {
+                    backoffRef.current = 150;
+                }
+                return;
             }
 
             // 'aborted' fires when we programmatically call .abort() — ignore it
             if (event.error === 'aborted') return;
 
-            // For no-speech, network, audio-capture, service-not-allowed, etc.
+            // 'network' error — common on mobile when Google's speech server is unreachable
+            if (event.error === 'network') {
+                console.warn('📱 Network error — speech recognition requires internet');
+                if (mobile) {
+                    backoffRef.current = 500; // Wait longer before retry
+                }
+            }
+
+            // For audio-capture, service-not-allowed, etc.
             // The onend handler will fire next and handle the restart.
         };
 
         // ── onend ────────────────────────────────────────────────
         recognition.onend = () => {
-            console.log('🔴 Recognition ended. active:', activeRef.current, 'state:', stateRef.current);
+            const timeSinceStart = Date.now() - startAttemptTimeRef.current;
+            console.log('🔴 Recognition ended. active:', activeRef.current,
+                'state:', stateRef.current, 'duration:', timeSinceStart + 'ms',
+                'mobile:', mobile);
             stateRef.current = STATE.IDLE;
 
             if (activeRef.current) {
+                // ── MOBILE FIX: If recognition ended almost immediately (<500ms),
+                // it means the browser killed the session before we could speak.
+                // Use a longer delay before restart to avoid rapid loops.
+                if (mobile && timeSinceStart < 500) {
+                    console.log('📱 Instant-end detected — using longer restart delay');
+                    backoffRef.current = Math.max(backoffRef.current, 300);
+                }
+
                 // Flush any leftover interim text before restarting
                 flushInterim();
                 scheduleRestart();
@@ -223,7 +337,7 @@ export default function useFrenchSpeechRecognition() {
         };
 
         return recognition;
-    }, [flushInterim]);
+    }, [flushInterim, clearWatchdog]);
 
     /** Schedule a restart with adaptive back-off */
     const scheduleRestart = useCallback(() => {
@@ -231,11 +345,15 @@ export default function useFrenchSpeechRecognition() {
             clearTimeout(restartTimerRef.current);
         }
 
+        const mobile = isMobileRef.current;
         const delay = backoffRef.current;
-        // Increase back-off for next time (cap at 2s)
-        backoffRef.current = Math.min(backoffRef.current * 1.5, 2000);
 
-        console.log(`⏱️ Scheduling restart in ${delay}ms`);
+        // Increase back-off for next time
+        // Mobile: cap at 3s (more network issues), Desktop: cap at 2s
+        const maxBackoff = mobile ? 3000 : 2000;
+        backoffRef.current = Math.min(backoffRef.current * 1.5, maxBackoff);
+
+        console.log(`⏱️ Scheduling restart in ${delay}ms (mobile: ${mobile})`);
 
         restartTimerRef.current = setTimeout(() => {
             if (!activeRef.current) return;
@@ -251,9 +369,12 @@ export default function useFrenchSpeechRecognition() {
             recognitionRef.current = newRec;
 
             stateRef.current = STATE.STARTING;
+            startAttemptTimeRef.current = Date.now();
             try {
                 newRec.start();
                 console.log('🔄 Recognition restarted');
+                // Start watchdog on mobile
+                if (mobile) startWatchdog();
             } catch (e) {
                 console.error('❌ Restart failed:', e.message);
                 stateRef.current = STATE.IDLE;
@@ -261,7 +382,7 @@ export default function useFrenchSpeechRecognition() {
                 if (activeRef.current) scheduleRestart();
             }
         }, delay);
-    }, [createRecognition, destroyRecognition]);
+    }, [createRecognition, destroyRecognition, startWatchdog]);
 
     // ─── Public API ─────────────────────────────────────────────────
 
@@ -270,15 +391,20 @@ export default function useFrenchSpeechRecognition() {
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SR) return;
 
+        const mobile = isMobileRef.current;
+
         // Reset state
         transcriptionRef.current = '';
         interimRef.current = '';
         setTranscription('');
         setInterimText('');
-        backoffRef.current = 50;
+        backoffRef.current = mobile ? 100 : 50;
         lastResultTimeRef.current = 0;
-        langRef.current = 'fr-FR';
         activeRef.current = true;
+        langTriedRef.current.clear();
+
+        // On mobile, try 'fr' first (more compatible), on desktop use 'fr-FR'
+        langRef.current = mobile ? 'fr' : 'fr-FR';
 
         // Reset pronunciation & fluency tracking
         confidenceScoresRef.current = [];
@@ -297,15 +423,18 @@ export default function useFrenchSpeechRecognition() {
         recognitionRef.current = rec;
 
         stateRef.current = STATE.STARTING;
+        startAttemptTimeRef.current = Date.now();
         try {
             rec.start();
+            // Start watchdog on mobile
+            if (mobile) startWatchdog();
         } catch (e) {
             console.error('Start failed:', e.message);
             stateRef.current = STATE.IDLE;
             // Will retry via scheduleRestart
             scheduleRestart();
         }
-    }, [createRecognition, destroyRecognition, scheduleRestart]);
+    }, [createRecognition, destroyRecognition, scheduleRestart, startWatchdog]);
 
     /** Stop speech recognition — call this when user presses stop */
     const stopListening = useCallback(() => {
@@ -316,6 +445,9 @@ export default function useFrenchSpeechRecognition() {
             clearTimeout(restartTimerRef.current);
             restartTimerRef.current = null;
         }
+
+        // Stop watchdog
+        clearWatchdog();
 
         // Flush interim text into final transcription
         flushInterim();
@@ -330,7 +462,7 @@ export default function useFrenchSpeechRecognition() {
         }
 
         setIsListening(false);
-    }, [flushInterim]);
+    }, [flushInterim, clearWatchdog]);
 
     /** Reset everything — call this when user deletes recording or starts fresh */
     const resetTranscription = useCallback(() => {
@@ -358,9 +490,10 @@ export default function useFrenchSpeechRecognition() {
             if (restartTimerRef.current) {
                 clearTimeout(restartTimerRef.current);
             }
+            clearWatchdog();
             destroyRecognition();
         };
-    }, [destroyRecognition]);
+    }, [destroyRecognition, clearWatchdog]);
 
     return {
         // State
