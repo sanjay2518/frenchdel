@@ -900,6 +900,54 @@
     font-style: italic;
 }
 
+/* Live Scores (Pronunciation + Fluency) */
+.live-scores {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(16, 185, 129, 0.2);
+    flex-wrap: wrap;
+}
+
+.live-score-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 140px;
+}
+
+.live-score-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #065f46;
+    white-space: nowrap;
+}
+
+.live-score-bar-wrap {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 4px;
+    overflow: hidden;
+    min-width: 50px;
+}
+
+.live-score-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease, background 0.3s ease;
+}
+
+.live-score-val {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #065f46;
+    min-width: 35px;
+    text-align: right;
+}
+
 /* Browser Warning */
 .browser-warning {
     padding: 1rem;

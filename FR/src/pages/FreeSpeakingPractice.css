@@ -428,6 +428,60 @@
     opacity: 0.7;
 }
 
+/* Live Scores in FreeSpeaking */
+.fs-live-scores {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(16, 185, 129, 0.15);
+    flex-wrap: wrap;
+}
+
+.fs-score-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 140px;
+}
+
+.fs-score-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+.fs-score-bar-container {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    min-width: 50px;
+}
+
+.fs-score-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease, background 0.3s ease;
+}
+
+.fs-score-value-small {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    min-width: 35px;
+    text-align: right;
+}
+
+.fs-word-count {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #34d399;
+}
+
 /* Submit Button */
 .fs-submit-btn {
     display: flex;

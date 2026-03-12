@@ -13,6 +13,8 @@
  *    inside callbacks (which suffer from stale closures and batching).
  * 5. Interim text is flushed before every restart and on explicit stop, so no
  *    words are ever silently dropped between recognition sessions.
+ * 6. Tracks confidence scores for pronunciation quality scoring.
+ * 7. Calculates fluency (words per minute) from word count and elapsed time.
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
@@ -31,6 +33,9 @@ export default function useFrenchSpeechRecognition() {
     const [interimText, setInterimText] = useState('');
     const [isListening, setIsListening] = useState(false);
     const [speechSupported, setSpeechSupported] = useState(false);
+    const [pronunciationScore, setPronunciationScore] = useState(0);
+    const [fluencyScore, setFluencyScore] = useState(0);
+    const [wordCount, setWordCount] = useState(0);
 
     // ─── Internal refs ──────────────────────────────────────────────
     const recognitionRef = useRef(null);
@@ -42,6 +47,11 @@ export default function useFrenchSpeechRecognition() {
     const backoffRef = useRef(50);            // current restart delay (ms)
     const lastResultTimeRef = useRef(0);      // for adaptive back-off
     const langRef = useRef('fr-FR');          // active language code
+
+    // ─── Pronunciation & Fluency tracking refs ──────────────────────
+    const confidenceScoresRef = useRef([]);   // array of confidence values
+    const startTimeRef = useRef(null);        // when recording started
+    const wordCountRef = useRef(0);           // total words recognized
 
     // ─── Detect support on mount ────────────────────────────────────
     useEffect(() => {
@@ -123,6 +133,10 @@ export default function useFrenchSpeechRecognition() {
 
                 if (event.results[i].isFinal) {
                     finalChunk += best + ' ';
+                    // Track confidence for pronunciation scoring
+                    if (bestConf > 0) {
+                        confidenceScoresRef.current.push(bestConf);
+                    }
                 } else {
                     interimChunk += best;
                 }
@@ -138,6 +152,31 @@ export default function useFrenchSpeechRecognition() {
                 setInterimText('');
                 transcriptionRef.current += finalChunk;
                 setTranscription(transcriptionRef.current);
+
+                // Update word count
+                const words = transcriptionRef.current.trim().split(/\s+/).filter(Boolean);
+                wordCountRef.current = words.length;
+                setWordCount(words.length);
+
+                // Calculate pronunciation score (average confidence × 100)
+                const scores = confidenceScoresRef.current;
+                if (scores.length > 0) {
+                    const avg = scores.reduce((sum, s) => sum + s, 0) / scores.length;
+                    setPronunciationScore(Math.round(avg * 100));
+                }
+
+                // Calculate fluency score (words per minute)
+                if (startTimeRef.current) {
+                    const elapsedMinutes = (Date.now() - startTimeRef.current) / 60000;
+                    if (elapsedMinutes > 0.05) { // At least 3 seconds
+                        const wpm = Math.round(words.length / elapsedMinutes);
+                        // Normalize: native French ~150 wpm, beginner ~60 wpm
+                        // Score 0-100 where 80-130 wpm is ideal range
+                        const normalized = Math.min(100, Math.round((wpm / 130) * 100));
+                        setFluencyScore(normalized);
+                    }
+                }
+
                 console.log('✅ Final:', finalChunk.trim());
             }
         };
@@ -241,6 +280,14 @@ export default function useFrenchSpeechRecognition() {
         langRef.current = 'fr-FR';
         activeRef.current = true;
 
+        // Reset pronunciation & fluency tracking
+        confidenceScoresRef.current = [];
+        startTimeRef.current = Date.now();
+        wordCountRef.current = 0;
+        setPronunciationScore(0);
+        setFluencyScore(0);
+        setWordCount(0);
+
         // Destroy any leftover instance
         destroyRecognition();
 
@@ -291,6 +338,12 @@ export default function useFrenchSpeechRecognition() {
         interimRef.current = '';
         setTranscription('');
         setInterimText('');
+        confidenceScoresRef.current = [];
+        startTimeRef.current = null;
+        wordCountRef.current = 0;
+        setPronunciationScore(0);
+        setFluencyScore(0);
+        setWordCount(0);
     }, []);
 
     /** Get the current final transcription (from ref, bypass stale state) */
@@ -315,6 +368,10 @@ export default function useFrenchSpeechRecognition() {
         interimText,
         isListening,
         speechSupported,
+        // Scores
+        pronunciationScore,
+        fluencyScore,
+        wordCount,
         // Actions
         startListening,
         stopListening,

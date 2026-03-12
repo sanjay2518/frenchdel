@@ -41,6 +41,7 @@ const FreeSpeakingPractice = () => {
     // Speech recognition via shared hook
     const {
         transcription, interimText, isListening, speechSupported,
+        pronunciationScore, fluencyScore, wordCount,
         startListening, stopListening, resetTranscription, getTranscription,
     } = useFrenchSpeechRecognition();
 
@@ -148,7 +149,7 @@ const FreeSpeakingPractice = () => {
         // Use getTranscription() to get the most current ref value
         const currentTranscription = getTranscription() || transcription;
         if (!currentTranscription.trim()) {
-            alert('No speech was detected. Please speak in French while recording.');
+            // UI already shows a gentle inline warning — no need for blocking alert
             return;
         }
 
@@ -363,7 +364,7 @@ const FreeSpeakingPractice = () => {
                                 </p>
                             </div>
 
-                            {/* Live Transcription */}
+                            {/* Live Transcription + Scores */}
                             {(isRecording || transcription) && (
                                 <div className="fs-live-transcription">
                                     <div className="fs-transcription-header">
@@ -376,6 +377,30 @@ const FreeSpeakingPractice = () => {
                                             : <span className="fs-placeholder">Listening... Start speaking in French</span>
                                         }
                                     </div>
+
+                                    {/* Live Pronunciation & Fluency Scores */}
+                                    {(pronunciationScore > 0 || wordCount > 0) && (
+                                        <div className="fs-live-scores">
+                                            <div className="fs-score-item">
+                                                <span className="fs-score-label">🎤 Pronunciation</span>
+                                                <div className="fs-score-bar-container">
+                                                    <div className="fs-score-bar" style={{ width: `${pronunciationScore}%`, background: pronunciationScore >= 80 ? '#10b981' : pronunciationScore >= 50 ? '#f59e0b' : '#ef4444' }}></div>
+                                                </div>
+                                                <span className="fs-score-value-small">{pronunciationScore}%</span>
+                                            </div>
+                                            <div className="fs-score-item">
+                                                <span className="fs-score-label">📊 Fluency</span>
+                                                <div className="fs-score-bar-container">
+                                                    <div className="fs-score-bar" style={{ width: `${fluencyScore}%`, background: fluencyScore >= 70 ? '#10b981' : fluencyScore >= 40 ? '#f59e0b' : '#ef4444' }}></div>
+                                                </div>
+                                                <span className="fs-score-value-small">{fluencyScore}%</span>
+                                            </div>
+                                            <div className="fs-score-item">
+                                                <span className="fs-score-label">📝 Words</span>
+                                                <span className="fs-word-count">{wordCount}</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -397,7 +422,7 @@ const FreeSpeakingPractice = () => {
                             {recordedBlob && !transcription.trim() && !feedback && (
                                 <div className="fs-no-speech-warning">
                                     <AlertCircle size={18} />
-                                    <span>No French speech detected. Please record again and speak in French.</span>
+                                    <span>No speech was captured. Try speaking louder and closer to the microphone, then record again.</span>
                                 </div>
                             )}
                         </div>

@@ -46,6 +46,7 @@ const PronunciationPractice = () => {
     // Speech recognition via shared hook
     const {
         transcription, interimText, isListening, speechSupported,
+        pronunciationScore, fluencyScore, wordCount,
         startListening, stopListening, resetTranscription, getTranscription,
     } = useFrenchSpeechRecognition();
 
@@ -146,7 +147,7 @@ const PronunciationPractice = () => {
         if (!recordedBlob || !selectedPrompt) return;
         const currentTranscription = getTranscription() || transcription;
         if (!currentTranscription.trim()) {
-            alert('No speech was detected. Please speak in French while recording.');
+            // UI already shows a gentle inline warning — no need for blocking alert
             return;
         }
 
@@ -517,6 +518,30 @@ const PronunciationPractice = () => {
                                         : <span className="placeholder">Listening... Start speaking in French</span>
                                     }
                                 </div>
+
+                                {/* Live Pronunciation & Fluency Scores */}
+                                {(pronunciationScore > 0 || wordCount > 0) && (
+                                    <div className="live-scores">
+                                        <div className="live-score-item">
+                                            <span className="live-score-label">🎤 Pronunciation</span>
+                                            <div className="live-score-bar-wrap">
+                                                <div className="live-score-bar" style={{ width: `${pronunciationScore}%`, background: pronunciationScore >= 80 ? '#10b981' : pronunciationScore >= 50 ? '#f59e0b' : '#ef4444' }}></div>
+                                            </div>
+                                            <span className="live-score-val">{pronunciationScore}%</span>
+                                        </div>
+                                        <div className="live-score-item">
+                                            <span className="live-score-label">📊 Fluency</span>
+                                            <div className="live-score-bar-wrap">
+                                                <div className="live-score-bar" style={{ width: `${fluencyScore}%`, background: fluencyScore >= 70 ? '#10b981' : fluencyScore >= 40 ? '#f59e0b' : '#ef4444' }}></div>
+                                            </div>
+                                            <span className="live-score-val">{fluencyScore}%</span>
+                                        </div>
+                                        <div className="live-score-item">
+                                            <span className="live-score-label">📝 Words</span>
+                                            <span className="live-score-val">{wordCount}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -531,7 +556,7 @@ const PronunciationPractice = () => {
                         )}
 
                         {recordedBlob && !transcription.trim() && (
-                            <p className="transcription-required">⚠️ No French speech detected. Please record again and speak in French.</p>
+                            <p className="transcription-required">💡 No speech was captured. Try speaking louder and closer to the microphone, then record again.</p>
                         )}
                     </div>
                 </div>
