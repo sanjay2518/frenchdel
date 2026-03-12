@@ -40,7 +40,7 @@ const FreeSpeakingPractice = () => {
 
     // Speech recognition via shared hook
     const {
-        transcription, interimText, isListening, speechSupported,
+        transcription, interimText, isListening, speechSupported, isMobile,
         pronunciationScore, fluencyScore, wordCount,
         startListening, stopListening, resetTranscription, getTranscription,
     } = useFrenchSpeechRecognition();
@@ -372,19 +372,25 @@ const FreeSpeakingPractice = () => {
 
                                 <p className="fs-status-text">
                                     {isSubmitting
-                                        ? '🤖 Analyzing your speech with AI...'
+                                        ? isMobile
+                                            ? '🤖 Transcribing & analyzing your speech with AI...'
+                                            : '🤖 Analyzing your speech with AI...'
                                         : isRecording
-                                            ? '🔴 Recording & transcribing... Speak in French!'
+                                            ? isMobile
+                                                ? '🔴 Recording... AI will transcribe after you stop.'
+                                                : '🔴 Recording & transcribing... Speak in French!'
                                             : recordedBlob
                                                 ? feedback
                                                     ? '✅ Analysis complete! See your feedback below.'
-                                                    : '✅ Recording complete! Click "Get AI Feedback" below.'
+                                                    : isMobile
+                                                        ? '✅ Recording complete! Click below to transcribe & get feedback.'
+                                                        : '✅ Recording complete! Click "Get AI Feedback" below.'
                                                 : '🎤 Click the button above to start speaking in French'}
                                 </p>
                             </div>
 
-                            {/* Live Transcription + Scores */}
-                            {(isRecording || transcription) && (
+                            {/* Live Transcription + Scores (desktop only - mobile uses server) */}
+                            {!isMobile && (isRecording || transcription) && (
                                 <div className="fs-live-transcription">
                                     <div className="fs-transcription-header">
                                         {isRecording && <span className="fs-live-badge">● LIVE</span>}

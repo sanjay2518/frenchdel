@@ -45,7 +45,7 @@ const PronunciationPractice = () => {
 
     // Speech recognition via shared hook
     const {
-        transcription, interimText, isListening, speechSupported,
+        transcription, interimText, isListening, speechSupported, isMobile,
         pronunciationScore, fluencyScore, wordCount,
         startListening, stopListening, resetTranscription, getTranscription,
     } = useFrenchSpeechRecognition();
@@ -520,12 +520,20 @@ const PronunciationPractice = () => {
                             {audioUrl && <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} />}
 
                             <p className="recording-instructions">
-                                {isRecording ? '🔴 Recording & transcribing... Speak in French!' : recordedBlob ? '✅ Recording complete!' : '🎤 Click to start - speak in French'}
+                                {isRecording
+                                    ? isMobile
+                                        ? '🔴 Recording... AI will transcribe after you stop.'
+                                        : '🔴 Recording & transcribing... Speak in French!'
+                                    : recordedBlob
+                                        ? isMobile
+                                            ? '✅ Recording complete! Click below to transcribe & get feedback.'
+                                            : '✅ Recording complete!'
+                                        : '🎤 Click to start - speak in French'}
                             </p>
                         </div>
 
-                        {/* Live Transcription Display */}
-                        {(isRecording || transcription) && (
+                        {/* Live Transcription Display (desktop only) */}
+                        {!isMobile && (isRecording || transcription) && (
                             <div className="live-transcription">
                                 <div className="transcription-label">
                                     {isRecording && <span className="live-indicator">● LIVE</span>}

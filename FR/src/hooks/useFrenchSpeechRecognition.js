@@ -45,6 +45,7 @@ export default function useFrenchSpeechRecognition() {
     const [interimText, setInterimText] = useState('');
     const [isListening, setIsListening] = useState(false);
     const [speechSupported, setSpeechSupported] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const [pronunciationScore, setPronunciationScore] = useState(0);
     const [fluencyScore, setFluencyScore] = useState(0);
     const [wordCount, setWordCount] = useState(0);
@@ -72,10 +73,13 @@ export default function useFrenchSpeechRecognition() {
     // ─── Detect support on mount ────────────────────────────────────
     useEffect(() => {
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        setSpeechSupported(!!SR);
-        isMobileRef.current = isMobileDevice();
-        if (isMobileRef.current) {
-            console.log('📱 Mobile device detected — using mobile-optimized recognition');
+        const mobile = isMobileDevice();
+        isMobileRef.current = mobile;
+        setIsMobile(mobile);
+        // On mobile, mark speech as NOT supported (we use server-side transcription instead)
+        setSpeechSupported(mobile ? false : !!SR);
+        if (mobile) {
+            console.log('📱 Mobile device detected — browser speech recognition DISABLED, using server-side transcription');
         }
     }, []);
 
@@ -388,23 +392,38 @@ export default function useFrenchSpeechRecognition() {
 
     /** Start speech recognition — call this when user presses record */
     const startListening = useCallback(() => {
+        // ── MOBILE: Do NOT start browser speech recognition ──
+        // It causes the annoying "Speech Recognition from Google cannot record" popup
+        // On mobile, we only record audio and send to server for transcription
+        if (isMobileRef.current) {
+            console.log('📱 Mobile detected — skipping browser speech recognition (server will transcribe)');
+            // Just reset state, don't start recognition
+            transcriptionRef.current = '';
+            interimRef.current = '';
+            setTranscription('');
+            setInterimText('');
+            confidenceScoresRef.current = [];
+            startTimeRef.current = Date.now();
+            wordCountRef.current = 0;
+            setPronunciationScore(0);
+            setFluencyScore(0);
+            setWordCount(0);
+            return;
+        }
+
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SR) return;
-
-        const mobile = isMobileRef.current;
 
         // Reset state
         transcriptionRef.current = '';
         interimRef.current = '';
         setTranscription('');
         setInterimText('');
-        backoffRef.current = mobile ? 100 : 50;
+        backoffRef.current = 50;
         lastResultTimeRef.current = 0;
         activeRef.current = true;
         langTriedRef.current.clear();
-
-        // On mobile, try 'fr' first (more compatible), on desktop use 'fr-FR'
-        langRef.current = mobile ? 'fr' : 'fr-FR';
+        langRef.current = 'fr-FR';
 
         // Reset pronunciation & fluency tracking
         confidenceScoresRef.current = [];
@@ -426,15 +445,12 @@ export default function useFrenchSpeechRecognition() {
         startAttemptTimeRef.current = Date.now();
         try {
             rec.start();
-            // Start watchdog on mobile
-            if (mobile) startWatchdog();
         } catch (e) {
             console.error('Start failed:', e.message);
             stateRef.current = STATE.IDLE;
-            // Will retry via scheduleRestart
             scheduleRestart();
         }
-    }, [createRecognition, destroyRecognition, scheduleRestart, startWatchdog]);
+    }, [createRecognition, destroyRecognition, scheduleRestart]);
 
     /** Stop speech recognition — call this when user presses stop */
     const stopListening = useCallback(() => {
@@ -501,6 +517,7 @@ export default function useFrenchSpeechRecognition() {
         interimText,
         isListening,
         speechSupported,
+        isMobile,
         // Scores
         pronunciationScore,
         fluencyScore,
