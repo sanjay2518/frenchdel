@@ -145,29 +145,48 @@ const PronunciationPractice = () => {
 
     const handleSubmit = async () => {
         if (!recordedBlob || !selectedPrompt) return;
-        const currentTranscription = getTranscription() || transcription;
-        if (!currentTranscription.trim()) {
-            // UI already shows a gentle inline warning — no need for blocking alert
-            return;
-        }
 
         setIsSubmitting(true);
         setFeedback(null);
 
         try {
-            const response = await fetch(`${API_URL}/api/feedback/speaking`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    promptTitle: selectedPrompt.title,
-                    promptDescription: selectedPrompt.description,
-                    duration: recordingTime,
-                    difficulty: selectedPrompt.difficulty,
-                    userId: user?.id,
-                    promptId: selectedPrompt.id,
-                    transcription: currentTranscription
-                })
-            });
+            const currentTranscription = getTranscription() || transcription;
+
+            let response;
+
+            if (currentTranscription.trim()) {
+                // MODE 1: Browser speech-to-text worked → send text
+                console.log('📝 Sending text transcription to server');
+                response = await fetch(`${API_URL}/api/feedback/speaking`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        promptTitle: selectedPrompt.title,
+                        promptDescription: selectedPrompt.description,
+                        duration: recordingTime,
+                        difficulty: selectedPrompt.difficulty,
+                        userId: user?.id,
+                        promptId: selectedPrompt.id,
+                        transcription: currentTranscription
+                    })
+                });
+            } else {
+                // MODE 2: No transcription → send audio for server-side transcription
+                console.log('🎤 Sending audio to server for transcription (mobile mode)');
+                const formData = new FormData();
+                formData.append('audio', recordedBlob, 'recording.webm');
+                formData.append('duration', recordingTime.toString());
+                formData.append('promptTitle', selectedPrompt.title);
+                formData.append('promptDescription', selectedPrompt.description || '');
+                formData.append('difficulty', selectedPrompt.difficulty || 'intermediate');
+                if (user?.id) formData.append('userId', user.id);
+                if (selectedPrompt.id) formData.append('promptId', selectedPrompt.id);
+
+                response = await fetch(`${API_URL}/api/feedback/transcribe-and-feedback`, {
+                    method: 'POST',
+                    body: formData
+                });
+            }
 
             const result = await response.json();
             if (result.success) setFeedback(result.feedback);
@@ -178,7 +197,7 @@ const PronunciationPractice = () => {
                 promptId: selectedPrompt.id,
                 difficulty: selectedPrompt.difficulty,
                 duration: recordingTime,
-                transcription: currentTranscription
+                transcription: currentTranscription || result?.feedback?.transcription || ''
             });
             setSubmitted(true);
         } catch (err) {
@@ -549,14 +568,17 @@ const PronunciationPractice = () => {
                             <button
                                 className="btn btn-primary btn-lg submit-btn"
                                 onClick={handleSubmit}
-                                disabled={isSubmitting || !transcription.trim()}
+                                disabled={isSubmitting}
                             >
-                                {isSubmitting ? <><Loader className="spinner-small" size={18} /> Analyzing...</> : <>Get AI Feedback <Send size={20} /></>}
+                                {isSubmitting
+                                    ? <><Loader className="spinner-small" size={18} /> {transcription.trim() ? 'Analyzing...' : 'Transcribing & analyzing...'}</>
+                                    : <>{transcription.trim() ? 'Get AI Feedback' : '🎤 Transcribe & Get Feedback'} <Send size={20} /></>
+                                }
                             </button>
                         )}
 
                         {recordedBlob && !transcription.trim() && (
-                            <p className="transcription-required">💡 No speech was captured. Try speaking louder and closer to the microphone, then record again.</p>
+                            <p className="transcription-required" style={{ color: '#3b82f6' }}>💡 Browser speech detection unavailable. Click the button above — your audio will be transcribed by AI on the server.</p>
                         )}
                     </div>
                 </div>

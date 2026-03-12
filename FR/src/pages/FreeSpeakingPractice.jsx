@@ -146,30 +146,49 @@ const FreeSpeakingPractice = () => {
     const handleSubmit = async () => {
         if (!recordedBlob) return;
 
-        // Use getTranscription() to get the most current ref value
-        const currentTranscription = getTranscription() || transcription;
-        if (!currentTranscription.trim()) {
-            // UI already shows a gentle inline warning — no need for blocking alert
-            return;
-        }
-
         setIsSubmitting(true);
         setFeedback(null);
 
         try {
-            const response = await fetch(`${API_URL}/api/feedback/free-speaking`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    duration: recordingTime,
-                    userId: user?.id,
-                    transcription: currentTranscription
-                })
-            });
+            // Use getTranscription() to get the most current ref value
+            const currentTranscription = getTranscription() || transcription;
+
+            let response;
+
+            if (currentTranscription.trim()) {
+                // MODE 1: Browser speech-to-text worked → send text (faster)
+                console.log('📝 Sending text transcription to server');
+                response = await fetch(`${API_URL}/api/feedback/free-speaking`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        duration: recordingTime,
+                        userId: user?.id,
+                        transcription: currentTranscription
+                    })
+                });
+            } else {
+                // MODE 2: Browser speech-to-text failed (mobile) → send audio for server transcription
+                console.log('🎤 Sending audio to server for transcription (mobile mode)');
+                const formData = new FormData();
+                formData.append('audio', recordedBlob, 'recording.webm');
+                formData.append('duration', recordingTime.toString());
+                if (user?.id) formData.append('userId', user.id);
+
+                response = await fetch(`${API_URL}/api/feedback/free-speaking`, {
+                    method: 'POST',
+                    body: formData
+                    // No Content-Type header — browser sets it automatically with boundary
+                });
+            }
 
             const result = await response.json();
             if (result.success && result.feedback) {
                 setFeedback(result.feedback);
+                // If server transcribed, show it
+                if (result.feedback.transcription && result.feedback.server_transcribed) {
+                    console.log('✅ Server transcription:', result.feedback.transcription);
+                }
             } else if (result.error) {
                 setFeedback({
                     type: 'free-speaking', ai_generated: false, is_valid: true, overall_score: null,
@@ -194,7 +213,7 @@ const FreeSpeakingPractice = () => {
                 title: 'Free Speaking Practice',
                 difficulty: 'free',
                 duration: recordingTime,
-                transcription: currentTranscription
+                transcription: currentTranscription || result?.feedback?.transcription || ''
             });
         } catch (err) {
             console.error('Free speaking feedback error:', err);
@@ -409,20 +428,20 @@ const FreeSpeakingPractice = () => {
                                 <button
                                     className="fs-submit-btn"
                                     onClick={handleSubmit}
-                                    disabled={isSubmitting || !transcription.trim()}
+                                    disabled={isSubmitting}
                                     id="get-feedback-btn"
                                 >
                                     {isSubmitting
-                                        ? <><Loader className="spinner-small" size={20} /> Analyzing your speech...</>
-                                        : <><Send size={20} /> Get AI Feedback</>
+                                        ? <><Loader className="spinner-small" size={20} /> {transcription.trim() ? 'Analyzing your speech...' : 'Transcribing & analyzing...'}</>
+                                        : <><Send size={20} /> {transcription.trim() ? 'Get AI Feedback' : '🎤 Transcribe & Get AI Feedback'}</>
                                     }
                                 </button>
                             )}
 
                             {recordedBlob && !transcription.trim() && !feedback && (
-                                <div className="fs-no-speech-warning">
+                                <div className="fs-no-speech-warning" style={{ background: 'rgba(59, 130, 246, 0.1)', borderColor: 'rgba(59, 130, 246, 0.3)', color: '#93c5fd' }}>
                                     <AlertCircle size={18} />
-                                    <span>No speech was captured. Try speaking louder and closer to the microphone, then record again.</span>
+                                    <span>Browser speech detection unavailable. Click the button above — your audio will be transcribed by AI on the server.</span>
                                 </div>
                             )}
                         </div>
