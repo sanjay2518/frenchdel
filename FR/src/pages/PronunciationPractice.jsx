@@ -470,9 +470,15 @@ const PronunciationPractice = () => {
                     <div className="recording-section">
                         <h3>Record Your Response</h3>
 
-                        {!speechSupported && (
+                        {!speechSupported && !isMobile && (
                             <div className="browser-warning">
                                 ⚠️ Speech recognition not supported in this browser. Please use Chrome or Edge.
+                            </div>
+                        )}
+
+                        {isMobile && (
+                            <div className="browser-warning" style={{ background: 'rgba(59, 130, 246, 0.15)', borderColor: 'rgba(59, 130, 246, 0.3)', color: '#93c5fd' }}>
+                                📱 Mobile mode: Your audio will be transcribed by AI on the server after recording.
                             </div>
                         )}
 
@@ -501,7 +507,7 @@ const PronunciationPractice = () => {
                                     <button
                                         className={`record-btn ${isRecording ? 'recording' : ''}`}
                                         onClick={isRecording ? stopRecording : startRecording}
-                                        disabled={!selectedPrompt || !speechSupported}
+                                        disabled={!selectedPrompt || (!speechSupported && !isMobile)}
                                     >
                                         {isRecording ? <MicOff size={32} /> : <Mic size={32} />}
                                     </button>

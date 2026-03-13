@@ -315,10 +315,17 @@ const FreeSpeakingPractice = () => {
                     <div className="fs-right-column">
                         {/* Recording Card */}
                         <div className="fs-recording-card">
-                            {!speechSupported && (
+                            {!speechSupported && !isMobile && (
                                 <div className="fs-browser-warning">
                                     <AlertCircle size={20} />
                                     <span>Speech recognition not supported in this browser. Please use <strong>Chrome</strong> or <strong>Edge</strong>.</span>
+                                </div>
+                            )}
+
+                            {isMobile && (
+                                <div className="fs-browser-warning" style={{ background: 'rgba(59, 130, 246, 0.15)', borderColor: 'rgba(59, 130, 246, 0.3)' }}>
+                                    <AlertCircle size={20} style={{ color: '#60a5fa' }} />
+                                    <span>📱 Mobile mode: Your audio will be transcribed by AI on the server after recording.</span>
                                 </div>
                             )}
 
@@ -346,7 +353,7 @@ const FreeSpeakingPractice = () => {
                                         <button
                                             className={`fs-record-btn ${isRecording ? 'recording' : ''}`}
                                             onClick={isRecording ? stopRecording : startRecording}
-                                            disabled={!speechSupported}
+                                            disabled={!speechSupported && !isMobile}
                                             id="start-speaking-btn"
                                         >
                                             <div className="fs-btn-inner">
