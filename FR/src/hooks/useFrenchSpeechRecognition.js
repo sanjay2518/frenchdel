@@ -40,7 +40,7 @@ function isMobileDevice() {
 }
 
 // ─── Mobile polling interval (ms) ────────────────────────────────
-const MOBILE_POLL_INTERVAL = 7000; // Send audio to server every 7 seconds
+const MOBILE_POLL_INTERVAL = 3000; // Send audio to server every 3 seconds
 
 export default function useFrenchSpeechRecognition() {
     // ─── Public state ───────────────────────────────────────────────
@@ -222,14 +222,20 @@ export default function useFrenchSpeechRecognition() {
     const startMobilePolling = useCallback((stream) => {
         console.log('📱 Starting mobile server-side transcription polling');
 
-        // Store the stream
-        mobileStreamRef.current = stream;
+        // CRITICAL: Clone the stream tracks so the hook's MediaRecorder
+        // doesn't conflict with the component's MediaRecorder on the same stream.
+        // On mobile, sharing a stream between two MediaRecorders can cause
+        // one or both to fail silently.
+        const clonedStream = new MediaStream(
+            stream.getAudioTracks().map(track => track.clone())
+        );
+        mobileStreamRef.current = clonedStream;
         mobileChunksRef.current = [];
         mobileTranscribingRef.current = false;
 
-        // Create a MediaRecorder to capture audio chunks
+        // Create a MediaRecorder on the CLONED stream
         try {
-            const recorder = new MediaRecorder(stream, {
+            const recorder = new MediaRecorder(clonedStream, {
                 mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
                     ? 'audio/webm;codecs=opus'
                     : 'audio/webm'
@@ -277,6 +283,14 @@ export default function useFrenchSpeechRecognition() {
             } catch (_) { /* ignore */ }
         }
         mobileMediaRecorderRef.current = null;
+
+        // Stop the cloned stream tracks (cleanup)
+        if (mobileStreamRef.current) {
+            mobileStreamRef.current.getTracks().forEach(track => {
+                try { track.stop(); } catch (_) { /* ignore */ }
+            });
+            mobileStreamRef.current = null;
+        }
 
         // Do one final transcription with all accumulated audio
         if (mobileChunksRef.current.length > 0 && !mobileTranscribingRef.current) {
