@@ -43,13 +43,7 @@ const FreeSpeakingPractice = () => {
         transcription, interimText, isListening, speechSupported, isMobile,
         pronunciationScore, fluencyScore, wordCount,
         startListening, stopListening, resetTranscription, getTranscription,
-        setApiUrl,
     } = useFrenchSpeechRecognition();
-
-    // Configure API URL for mobile server-side transcription
-    useEffect(() => {
-        setApiUrl(API_URL);
-    }, [setApiUrl]);
 
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
@@ -108,9 +102,9 @@ const FreeSpeakingPractice = () => {
                 setWaveBars(prev => prev.map(() => Math.random() * 80 + 20));
             }, 150);
 
-            // Start speech recognition (pass stream for mobile server-side transcription)
+            // Start speech recognition
             if (speechSupported) {
-                startListening(stream);
+                startListening();
             }
         } catch (err) {
             alert('Unable to access microphone. Please check permissions.');

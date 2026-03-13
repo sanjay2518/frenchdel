@@ -1,7 +1,6 @@
 /**
  * useFrenchSpeechRecognition — A robust, production-grade hook for continuous
- * French speech-to-text using the Web Speech API (desktop) or server-side
- * transcription polling (mobile).
+ * French speech-to-text using the Web Speech API on ALL devices.
  *
  * KEY DESIGN DECISIONS:
  * 1. Creates a FRESH SpeechRecognition instance on every restart cycle.
@@ -16,9 +15,13 @@
  *    words are ever silently dropped between recognition sessions.
  * 6. Tracks confidence scores for pronunciation quality scoring.
  * 7. Calculates fluency (words per minute) from word count and elapsed time.
- * 8. MOBILE: Instead of using the buggy browser Speech API, polls the server
- *    every ~7 seconds with the accumulated audio for near-real-time
- *    transcription via Gemini AI. This avoids the error popups entirely.
+ * 8. MOBILE FIXES: Handles mobile Chrome/Android quirks — disables continuous
+ *    mode on mobile (which is unreliable), uses faster restart cycles,
+ *    tries both 'fr-FR' and 'fr' language codes, and adds a watchdog timer
+ *    to detect when recognition silently dies on mobile.
+ * 9. On mobile, browser speech recognition runs for instant live text.
+ *    If it fails, the components fall back to server-side transcription
+ *    at submit time.
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
@@ -38,9 +41,6 @@ function isMobileDevice() {
         navigator.userAgent
     ) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
 }
-
-// ─── Mobile polling interval (ms) ────────────────────────────────
-const MOBILE_POLL_INTERVAL = 7000; // Send audio to server every 7 seconds
 
 export default function useFrenchSpeechRecognition() {
     // ─── Public state ───────────────────────────────────────────────
@@ -73,32 +73,17 @@ export default function useFrenchSpeechRecognition() {
     const startTimeRef = useRef(null);        // when recording started
     const wordCountRef = useRef(0);           // total words recognized
 
-    // ─── Mobile server transcription refs ───────────────────────────
-    const mobilePollingRef = useRef(null);       // polling interval ID
-    const mobileMediaRecorderRef = useRef(null); // separate MediaRecorder for chunking
-    const mobileStreamRef = useRef(null);        // the audio stream for mobile
-    const mobileChunksRef = useRef([]);          // accumulated audio chunks
-    const mobileTranscribingRef = useRef(false); // prevent concurrent requests
-    const mobileApiUrlRef = useRef('');           // API base URL
-
     // ─── Detect support on mount ────────────────────────────────────
     useEffect(() => {
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         const mobile = isMobileDevice();
         isMobileRef.current = mobile;
         setIsMobile(mobile);
-
-        // On mobile, speech IS supported via server-side transcription
-        // On desktop, requires browser Speech API
+        // Use browser Speech API on ALL devices (mobile + desktop)
+        setSpeechSupported(!!SR);
         if (mobile) {
-            setSpeechSupported(true); // Mobile uses server-side transcription
-            console.log('📱 Mobile device detected — will use server-side live transcription');
-        } else {
-            setSpeechSupported(!!SR);
+            console.log('📱 Mobile device detected — using browser Speech API for instant live text');
         }
-
-        // Detect API URL from meta tag or environment
-        // Components should call setApiUrl() to configure this
     }, []);
 
     // ─── Helpers ────────────────────────────────────────────────────
@@ -141,153 +126,6 @@ export default function useFrenchSpeechRecognition() {
             recognitionRef.current = null;
         }
     }, [clearWatchdog]);
-
-    // ─── Mobile Server-Side Transcription ───────────────────────────
-
-    /** Send accumulated audio chunks to server for transcription */
-    const sendAudioToServer = useCallback(async () => {
-        if (mobileTranscribingRef.current) return; // Don't overlap requests
-        if (mobileChunksRef.current.length === 0) return;
-
-        const apiUrl = mobileApiUrlRef.current;
-        if (!apiUrl) {
-            console.warn('📱 No API URL configured for mobile transcription');
-            return;
-        }
-
-        mobileTranscribingRef.current = true;
-
-        try {
-            // Create a blob from ALL accumulated chunks (full audio so far)
-            const audioBlob = new Blob(mobileChunksRef.current, { type: 'audio/webm' });
-
-            // Skip if too small (just noise/silence)
-            if (audioBlob.size < 2000) {
-                mobileTranscribingRef.current = false;
-                return;
-            }
-
-            console.log(`📱 Sending ${audioBlob.size} bytes to server for live transcription...`);
-
-            const formData = new FormData();
-            formData.append('audio', audioBlob, 'live-chunk.webm');
-
-            const response = await fetch(`${apiUrl}/api/feedback/transcribe-live`, {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if (result.success && result.transcription && result.transcription.trim()) {
-                const serverText = result.transcription.trim();
-                console.log('📱 ✅ Server transcription:', serverText);
-
-                // Replace entire transcription with the server's version
-                // (server always transcribes the FULL audio, so it's the latest)
-                transcriptionRef.current = serverText + ' ';
-                setTranscription(transcriptionRef.current);
-                interimRef.current = '';
-                setInterimText('');
-
-                // Update word count
-                const words = serverText.split(/\s+/).filter(Boolean);
-                wordCountRef.current = words.length;
-                setWordCount(words.length);
-
-                // Calculate fluency score
-                if (startTimeRef.current) {
-                    const elapsedMinutes = (Date.now() - startTimeRef.current) / 60000;
-                    if (elapsedMinutes > 0.05) {
-                        const wpm = Math.round(words.length / elapsedMinutes);
-                        const normalized = Math.min(100, Math.round((wpm / 130) * 100));
-                        setFluencyScore(normalized);
-                    }
-                }
-            } else if (result.success && !result.transcription) {
-                // Server returned empty — might be silence, show interim indicator
-                if (activeRef.current) {
-                    setInterimText('(listening...)');
-                }
-            }
-        } catch (err) {
-            console.warn('📱 Live transcription request failed:', err.message);
-            // Don't show error to user — just skip this polling cycle
-        } finally {
-            mobileTranscribingRef.current = false;
-        }
-    }, []);
-
-    /** Start mobile server-side polling */
-    const startMobilePolling = useCallback((stream) => {
-        console.log('📱 Starting mobile server-side transcription polling');
-
-        // Store the stream
-        mobileStreamRef.current = stream;
-        mobileChunksRef.current = [];
-        mobileTranscribingRef.current = false;
-
-        // Create a MediaRecorder to capture audio chunks
-        try {
-            const recorder = new MediaRecorder(stream, {
-                mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-                    ? 'audio/webm;codecs=opus'
-                    : 'audio/webm'
-            });
-            mobileMediaRecorderRef.current = recorder;
-
-            recorder.ondataavailable = (e) => {
-                if (e.data && e.data.size > 0) {
-                    mobileChunksRef.current.push(e.data);
-                }
-            };
-
-            // Start recording with timeslice to get data periodically
-            recorder.start(1000); // Get data every 1 second
-
-            // Show "listening" indicator immediately
-            setInterimText('(listening...)');
-
-            // Poll server every MOBILE_POLL_INTERVAL ms
-            mobilePollingRef.current = setInterval(() => {
-                if (activeRef.current) {
-                    sendAudioToServer();
-                }
-            }, MOBILE_POLL_INTERVAL);
-
-        } catch (err) {
-            console.error('📱 Failed to create MediaRecorder for polling:', err);
-        }
-    }, [sendAudioToServer]);
-
-    /** Stop mobile polling and cleanup */
-    const stopMobilePolling = useCallback(async () => {
-        console.log('📱 Stopping mobile polling');
-
-        // Stop polling interval
-        if (mobilePollingRef.current) {
-            clearInterval(mobilePollingRef.current);
-            mobilePollingRef.current = null;
-        }
-
-        // Stop the MediaRecorder
-        if (mobileMediaRecorderRef.current && mobileMediaRecorderRef.current.state !== 'inactive') {
-            try {
-                mobileMediaRecorderRef.current.stop();
-            } catch (_) { /* ignore */ }
-        }
-        mobileMediaRecorderRef.current = null;
-
-        // Do one final transcription with all accumulated audio
-        if (mobileChunksRef.current.length > 0 && !mobileTranscribingRef.current) {
-            setInterimText('(finalizing...)');
-            await sendAudioToServer();
-            setInterimText('');
-        }
-
-        mobileChunksRef.current = [];
-        mobileTranscribingRef.current = false;
-    }, [sendAudioToServer]);
 
     /** Start mobile watchdog — detects if recognition silently dies */
     const startWatchdog = useCallback(() => {
@@ -443,7 +281,7 @@ export default function useFrenchSpeechRecognition() {
             }
 
             if (event.error === 'language-not-supported') {
-                // Fallback chain: fr-FR → fr → en-US (last resort for testing)
+                // Fallback chain: fr-FR → fr
                 if (langRef.current === 'fr-FR') {
                     langRef.current = 'fr';
                     langTriedRef.current.add('fr-FR');
@@ -555,37 +393,8 @@ export default function useFrenchSpeechRecognition() {
 
     // ─── Public API ─────────────────────────────────────────────────
 
-    /** Set the API URL for mobile server-side transcription */
-    const setApiUrl = useCallback((url) => {
-        mobileApiUrlRef.current = url;
-    }, []);
-
     /** Start speech recognition — call this when user presses record */
-    const startListening = useCallback((audioStream) => {
-        // ── MOBILE: Use server-side transcription polling ──
-        if (isMobileRef.current) {
-            console.log('📱 Mobile detected — starting server-side live transcription polling');
-            // Reset state
-            transcriptionRef.current = '';
-            interimRef.current = '';
-            setTranscription('');
-            setInterimText('');
-            confidenceScoresRef.current = [];
-            startTimeRef.current = Date.now();
-            wordCountRef.current = 0;
-            setPronunciationScore(0);
-            setFluencyScore(0);
-            setWordCount(0);
-            activeRef.current = true;
-            setIsListening(true);
-
-            // Start polling with the provided audio stream
-            if (audioStream) {
-                startMobilePolling(audioStream);
-            }
-            return;
-        }
-
+    const startListening = useCallback(() => {
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SR) return;
 
@@ -594,7 +403,7 @@ export default function useFrenchSpeechRecognition() {
         interimRef.current = '';
         setTranscription('');
         setInterimText('');
-        backoffRef.current = 50;
+        backoffRef.current = isMobileRef.current ? 100 : 50;
         lastResultTimeRef.current = 0;
         activeRef.current = true;
         langTriedRef.current.clear();
@@ -620,23 +429,18 @@ export default function useFrenchSpeechRecognition() {
         startAttemptTimeRef.current = Date.now();
         try {
             rec.start();
+            // Start watchdog on mobile
+            if (isMobileRef.current) startWatchdog();
         } catch (e) {
             console.error('Start failed:', e.message);
             stateRef.current = STATE.IDLE;
             scheduleRestart();
         }
-    }, [createRecognition, destroyRecognition, scheduleRestart, startMobilePolling]);
+    }, [createRecognition, destroyRecognition, scheduleRestart, startWatchdog]);
 
     /** Stop speech recognition — call this when user presses stop */
-    const stopListening = useCallback(async () => {
+    const stopListening = useCallback(() => {
         activeRef.current = false;
-
-        // ── MOBILE: Stop server polling ──
-        if (isMobileRef.current) {
-            await stopMobilePolling();
-            setIsListening(false);
-            return;
-        }
 
         // Cancel any pending restart
         if (restartTimerRef.current) {
@@ -660,7 +464,7 @@ export default function useFrenchSpeechRecognition() {
         }
 
         setIsListening(false);
-    }, [flushInterim, clearWatchdog, stopMobilePolling]);
+    }, [flushInterim, clearWatchdog]);
 
     /** Reset everything — call this when user deletes recording or starts fresh */
     const resetTranscription = useCallback(() => {
@@ -688,9 +492,6 @@ export default function useFrenchSpeechRecognition() {
             if (restartTimerRef.current) {
                 clearTimeout(restartTimerRef.current);
             }
-            if (mobilePollingRef.current) {
-                clearInterval(mobilePollingRef.current);
-            }
             clearWatchdog();
             destroyRecognition();
         };
@@ -712,6 +513,5 @@ export default function useFrenchSpeechRecognition() {
         stopListening,
         resetTranscription,
         getTranscription,
-        setApiUrl,
     };
 }
