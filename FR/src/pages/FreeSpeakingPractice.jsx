@@ -43,13 +43,7 @@ const FreeSpeakingPractice = () => {
         transcription, interimText, isListening, speechSupported, isMobile,
         pronunciationScore, fluencyScore, wordCount,
         startListening, stopListening, resetTranscription, getTranscription,
-        setApiUrl,
     } = useFrenchSpeechRecognition();
-
-    // Configure API URL for mobile server-side transcription
-    useEffect(() => {
-        setApiUrl(API_URL);
-    }, [setApiUrl]);
 
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
@@ -108,9 +102,9 @@ const FreeSpeakingPractice = () => {
                 setWaveBars(prev => prev.map(() => Math.random() * 80 + 20));
             }, 150);
 
-            // Start speech recognition (pass stream for mobile server-side transcription)
+            // Start speech recognition
             if (speechSupported) {
-                startListening(stream);
+                startListening();
             }
         } catch (err) {
             alert('Unable to access microphone. Please check permissions.');
@@ -352,7 +346,7 @@ const FreeSpeakingPractice = () => {
                                         <button
                                             className={`fs-record-btn ${isRecording ? 'recording' : ''}`}
                                             onClick={isRecording ? stopRecording : startRecording}
-                                            disabled={false}
+                                            disabled={!speechSupported}
                                             id="start-speaking-btn"
                                         >
                                             <div className="fs-btn-inner">
@@ -378,19 +372,25 @@ const FreeSpeakingPractice = () => {
 
                                 <p className="fs-status-text">
                                     {isSubmitting
-                                        ? '🤖 Analyzing your speech with AI...'
+                                        ? isMobile
+                                            ? '🤖 Transcribing & analyzing your speech with AI...'
+                                            : '🤖 Analyzing your speech with AI...'
                                         : isRecording
-                                            ? '🔴 Recording & transcribing... Speak in French!'
+                                            ? isMobile
+                                                ? '🔴 Recording... AI will transcribe after you stop.'
+                                                : '🔴 Recording & transcribing... Speak in French!'
                                             : recordedBlob
                                                 ? feedback
                                                     ? '✅ Analysis complete! See your feedback below.'
-                                                    : '✅ Recording complete! Click "Get AI Feedback" below.'
+                                                    : isMobile
+                                                        ? '✅ Recording complete! Click below to transcribe & get feedback.'
+                                                        : '✅ Recording complete! Click "Get AI Feedback" below.'
                                                 : '🎤 Click the button above to start speaking in French'}
                                 </p>
                             </div>
 
-                            {/* Live Transcription + Scores (all devices) */}
-                            {(isRecording || transcription) && (
+                            {/* Live Transcription + Scores (desktop only - mobile uses server) */}
+                            {!isMobile && (isRecording || transcription) && (
                                 <div className="fs-live-transcription">
                                     <div className="fs-transcription-header">
                                         {isRecording && <span className="fs-live-badge">● LIVE</span>}
@@ -444,7 +444,12 @@ const FreeSpeakingPractice = () => {
                                 </button>
                             )}
 
-
+                            {recordedBlob && !transcription.trim() && !feedback && (
+                                <div className="fs-no-speech-warning" style={{ background: 'rgba(59, 130, 246, 0.1)', borderColor: 'rgba(59, 130, 246, 0.3)', color: '#93c5fd' }}>
+                                    <AlertCircle size={18} />
+                                    <span>Browser speech detection unavailable. Click the button above — your audio will be transcribed by AI on the server.</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* =================== INLINE AI FEEDBACK =================== */}

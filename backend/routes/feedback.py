@@ -4,44 +4,6 @@ from services.ai_feedback_service import ai_feedback_service
 
 feedback_bp = Blueprint('feedback', __name__)
 
-# ─── Live Transcription Endpoint (for mobile real-time) ──────────────
-@feedback_bp.route('/feedback/transcribe-live', methods=['POST'])
-def transcribe_live():
-    """Lightweight, fast transcription endpoint for mobile real-time display.
-    Accepts audio file upload via multipart/form-data.
-    Returns ONLY the transcription text — no feedback, no validation.
-    Optimized for speed to enable near-real-time display on mobile.
-    """
-    try:
-        if 'audio' not in request.files:
-            return jsonify({'success': False, 'transcription': '', 'error': 'No audio file'}), 400
-        
-        audio_file = request.files['audio']
-        if not audio_file:
-            return jsonify({'success': False, 'transcription': '', 'error': 'Empty audio'}), 400
-        
-        audio_data = audio_file.read()
-        mime_type = audio_file.content_type or 'audio/webm'
-        
-        # Skip very short audio (< 2KB is usually silence/noise)
-        if len(audio_data) < 2000:
-            return jsonify({'success': True, 'transcription': '', 'partial': True}), 200
-        
-        # Use the existing transcribe_audio method
-        result = ai_feedback_service.transcribe_audio(audio_data, mime_type)
-        
-        return jsonify({
-            'success': result.get('success', False),
-            'transcription': result.get('transcription', ''),
-            'is_french': result.get('is_french', False),
-            'partial': True  # Flag indicating this is a live/partial result
-        }), 200
-        
-    except Exception as e:
-        print(f"Error in transcribe_live: {str(e)}")
-        return jsonify({'success': False, 'transcription': '', 'error': str(e)}), 200
-
-
 # ─── Audio Transcription Endpoint ────────────────────────────────────
 @feedback_bp.route('/feedback/transcribe', methods=['POST'])
 def transcribe_audio():

@@ -48,13 +48,7 @@ const PronunciationPractice = () => {
         transcription, interimText, isListening, speechSupported, isMobile,
         pronunciationScore, fluencyScore, wordCount,
         startListening, stopListening, resetTranscription, getTranscription,
-        setApiUrl,
     } = useFrenchSpeechRecognition();
-
-    // Configure API URL for mobile server-side transcription
-    useEffect(() => {
-        setApiUrl(API_URL);
-    }, [setApiUrl]);
 
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
@@ -112,9 +106,9 @@ const PronunciationPractice = () => {
             setRecordingTime(0);
             timerRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
 
-            // Start speech recognition (pass stream for mobile server-side transcription)
+            // Start speech recognition
             if (speechSupported) {
-                startListening(stream);
+                startListening();
             }
         } catch (err) {
             alert('Unable to access microphone.');
@@ -507,7 +501,7 @@ const PronunciationPractice = () => {
                                     <button
                                         className={`record-btn ${isRecording ? 'recording' : ''}`}
                                         onClick={isRecording ? stopRecording : startRecording}
-                                        disabled={!selectedPrompt}
+                                        disabled={!selectedPrompt || !speechSupported}
                                     >
                                         {isRecording ? <MicOff size={32} /> : <Mic size={32} />}
                                     </button>
@@ -527,15 +521,19 @@ const PronunciationPractice = () => {
 
                             <p className="recording-instructions">
                                 {isRecording
-                                    ? '🔴 Recording & transcribing... Speak in French!'
+                                    ? isMobile
+                                        ? '🔴 Recording... AI will transcribe after you stop.'
+                                        : '🔴 Recording & transcribing... Speak in French!'
                                     : recordedBlob
-                                        ? '✅ Recording complete!'
+                                        ? isMobile
+                                            ? '✅ Recording complete! Click below to transcribe & get feedback.'
+                                            : '✅ Recording complete!'
                                         : '🎤 Click to start - speak in French'}
                             </p>
                         </div>
 
-                        {/* Live Transcription Display (all devices) */}
-                        {(isRecording || transcription) && (
+                        {/* Live Transcription Display (desktop only) */}
+                        {!isMobile && (isRecording || transcription) && (
                             <div className="live-transcription">
                                 <div className="transcription-label">
                                     {isRecording && <span className="live-indicator">● LIVE</span>}
@@ -587,7 +585,9 @@ const PronunciationPractice = () => {
                             </button>
                         )}
 
-
+                        {recordedBlob && !transcription.trim() && (
+                            <p className="transcription-required" style={{ color: '#3b82f6' }}>💡 Browser speech detection unavailable. Click the button above — your audio will be transcribed by AI on the server.</p>
+                        )}
                     </div>
                 </div>
             </div>
